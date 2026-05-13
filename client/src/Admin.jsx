@@ -42,17 +42,23 @@ function Admin() {
   // --- PRODUCT LOGIC ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // THE FIX: Nesting the language data exactly how MongoDB expects it
     const newProduct = {
-      nameEn: formData.nameEn,
-      nameKm: formData.nameKm,
+      name: {
+        en: formData.nameEn,
+        km: formData.nameKm
+      },
       price: Number(formData.price),
-      descEn: formData.descEn,
-      descKm: formData.descKm,
+      description: {
+        en: formData.descEn,
+        km: formData.descKm
+      },
       image: formData.image,
-      category: formData.category
+      category: formData.category || "All"
     };
+
     try {
-      // Use your ACTUAL Render URL here!
       await axios.post('https://my-retail-store-slon.onrender.com/api/products', newProduct);
       alert("Product Added Successfully!");
       setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: '' });

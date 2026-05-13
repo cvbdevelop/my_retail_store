@@ -6,7 +6,14 @@ const productRoutes = require('./routes/productRoutes');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// --- 1. THE VIP PASS FOR VERCEL ---
+app.use(cors({
+    origin: "*", 
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
@@ -17,7 +24,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.log(err));
 
-// --- 1. NEW: ORDER DATABASE MODEL ---
+// --- ORDER DATABASE MODEL ---
 const OrderSchema = new mongoose.Schema({
   customer: { name: String, phone: String, address: String },
   items: Array,
@@ -26,20 +33,17 @@ const OrderSchema = new mongoose.Schema({
 });
 const Order = mongoose.model('Order', OrderSchema);
   
-// --- 2. UPDATED: CHECKOUT ROUTE ---
+// --- CHECKOUT ROUTE ---
 app.post('/api/checkout', async (req, res) => {
   const { cart, total, customer } = req.body;
   
-  // ⚠️ PUT YOUR REAL KEYS BACK HERE ⚠️
   const TELEGRAM_TOKEN = '8628659881:AAFBZKjP7ynLwVC38fddjd5pmt-AAg6ak7E';
   const CHAT_ID = '51846992';
 
   try {
-    // A. Save the order to MongoDB Database
     const newOrder = new Order({ customer, items: cart, total });
     const savedOrder = await newOrder.save();
 
-    // B. Format the receipt for Telegram (Now includes Customer Info!)
     let message = `🛒 *NEW ORDER RECEIVED*\n\n`;
     message += `👤 *Name:* ${customer.name}\n`;
     message += `📞 *Phone:* ${customer.phone}\n`;
@@ -52,14 +56,12 @@ app.post('/api/checkout', async (req, res) => {
     message += `\n💰 *Total: $${total}*`;
     message += `\n🔖 *Order ID:* ${savedOrder._id}`;
 
-    // C. Send to Telegram
     await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
       chat_id: CHAT_ID,
       text: message,
       parse_mode: 'Markdown'
     });
     
-    // D. Tell React it was successful and send the Order ID back
     res.status(200).json({ success: true, orderId: savedOrder._id });
   } catch (err) {
     console.error("Server Error:", err);
@@ -67,4 +69,6 @@ app.post('/api/checkout', async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+// --- 2. DYNAMIC PORT FOR RENDER ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

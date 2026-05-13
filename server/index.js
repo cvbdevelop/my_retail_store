@@ -8,10 +8,9 @@ require('dotenv').config();
 const app = express();
 
 // --- 1. THE VIP PASS FOR VERCEL ---
+// --- THE FIXED VIP PASS ---
 app.use(cors({
-    origin: "*", 
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "*"
 }));
 
 app.use(express.json());

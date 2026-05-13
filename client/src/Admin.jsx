@@ -43,18 +43,24 @@ function Admin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newProduct = {
-      name: { en: formData.nameEn, km: formData.nameKm },
+      nameEn: formData.nameEn,
+      nameKm: formData.nameKm,
       price: Number(formData.price),
-      description: { en: formData.descEn, km: formData.descKm },
+      descEn: formData.descEn,
+      descKm: formData.descKm,
       image: formData.image,
       category: formData.category
     };
     try {
+      // Use your ACTUAL Render URL here!
       await axios.post('https://my-retail-store-slon.onrender.com/api/products', newProduct);
-      alert("Product Added!");
+      alert("Product Added Successfully!");
       setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: '' });
       fetchProducts(); 
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error("The error is:", err.response?.data || err.message); 
+      alert("Failed to save. Check the console for the reason.");
+    }
   };
 
   const deleteProduct = async (id) => {

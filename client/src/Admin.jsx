@@ -26,7 +26,7 @@ function Admin() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/products');
+      const res = await axios.get('https://my-retail-store.onrender.com');
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -50,7 +50,7 @@ function Admin() {
       category: formData.category
     };
     try {
-      await axios.post('http://localhost:5000/api/products', newProduct);
+      await axios.post('https://my-retail-store.onrender.com', newProduct);
       alert("Product Added!");
       setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: '' });
       fetchProducts(); 
@@ -60,7 +60,7 @@ function Admin() {
   const deleteProduct = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/products/${id}`);
+        await axios.delete(`https://my-retail-store.onrender.com/${id}`);
         fetchProducts(); 
       } catch (err) { console.error(err); }
     }

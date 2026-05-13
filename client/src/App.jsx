@@ -26,7 +26,7 @@ function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get('https://my-retail-store.onrender.com');
+        const res = await axios.get('https://my-retail-store-a1b2.onrender.com/api/products');
         setProducts(res.data);
       } catch (err) { console.error(err); }
     };
@@ -50,7 +50,7 @@ function App() {
 
     try {
       // Send cart AND customer info to backend
-      const response = await axios.post('https://my-retail-store.onrender.com', { 
+      const response = await axios.post('https://my-retail-store-a1b2.onrender.com/api/products', { 
         cart, 
         total,
         customer: customerInfo 

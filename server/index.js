@@ -8,12 +8,16 @@ require('dotenv').config();
 const app = express();
 
 // --- 1. THE VIP PASS FOR VERCEL ---
-// --- THE FIXED VIP PASS ---
-app.use(cors({
-    origin: "*"
-}));
+// --- THE NUCLEAR CORS FIX ---
+const corsOptions = {
+    origin: "https://my-retail-store.vercel.app", // Explicitly whitelist your Vercel domain
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
 
-app.use(express.json());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Forces Express to answer the preflight 'OPTIONS' check
+// ----------------------------
 
 // Routes
 app.use('/api/products', productRoutes);

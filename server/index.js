@@ -7,28 +7,23 @@ require('dotenv').config();
 
 const app = express();
 
-// --- THE NUCLEAR CORS FIX ---
-const corsOptions = {
-    origin: "https://my-retail-store.vercel.app", 
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-};
+// --- 1. GOD MODE CORS (Allows absolutely everything) ---
+app.use(cors({ origin: '*' }));
+app.use(express.json());
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
-// --- THE MISSING PUZZLE PIECE ---
-// This tells the server how to read the product data you send it!
-app.use(express.json()); 
-// -------------------------------
+// --- 2. HEALTH CHECK (Proves the server is online) ---
+app.get('/', (req, res) => {
+    res.status(200).json({ message: "SERVER IS ALIVE AND READY!" });
+});
 
 // Routes
 app.use('/api/products', productRoutes);
 
+// --- 3. DATABASE CONNECTION ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/my_retail_store';
 mongoose.connect(MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.log(err));
+  .then(() => console.log("Connected to MongoDB Atlas!"))
+  .catch(err => console.error("Database connection failed:", err));
 
 // --- ORDER DATABASE MODEL ---
 const OrderSchema = new mongoose.Schema({
@@ -42,7 +37,6 @@ const Order = mongoose.model('Order', OrderSchema);
 // --- CHECKOUT ROUTE ---
 app.post('/api/checkout', async (req, res) => {
   const { cart, total, customer } = req.body;
-  
   const TELEGRAM_TOKEN = '8628659881:AAFBZKjP7ynLwVC38fddjd5pmt-AAg6ak7E';
   const CHAT_ID = '51846992';
 
@@ -50,24 +44,6 @@ app.post('/api/checkout', async (req, res) => {
     const newOrder = new Order({ customer, items: cart, total });
     const savedOrder = await newOrder.save();
 
-    let message = `🛒 *NEW ORDER RECEIVED*\n\n`;
-    message += `👤 *Name:* ${customer.name}\n`;
-    message += `📞 *Phone:* ${customer.phone}\n`;
-    message += `📍 *Address:* ${customer.address}\n\n`;
-    message += `📦 *Order Details:*\n`;
-    cart.forEach(item => {
-      const itemName = item.name.en || item.name.km;
-      message += `• ${itemName} (x${item.quantity}) - $${item.price * item.quantity}\n`;
-    });
-    message += `\n💰 *Total: $${total}*`;
-    message += `\n🔖 *Order ID:* ${savedOrder._id}`;
-
-    await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-      chat_id: CHAT_ID,
-      text: message,
-      parse_mode: 'Markdown'
-    });
-    
     res.status(200).json({ success: true, orderId: savedOrder._id });
   } catch (err) {
     console.error("Server Error:", err);
@@ -75,6 +51,5 @@ app.post('/api/checkout', async (req, res) => {
   }
 });
 
-// --- DYNAMIC PORT FOR RENDER ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

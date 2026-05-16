@@ -38,15 +38,48 @@ const Order = mongoose.model('Order', OrderSchema);
 app.post('/api/checkout', async (req, res) => {
   const { cart, total, customer } = req.body;
   
-  // 1. SECURITY FIX: Pulling from environment variables instead of hardcoding
+  // Load secure variables
   const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
   const CHAT_ID = process.env.CHAT_ID;
 
   try {
+    // 1. Save order to MongoDB
     const newOrder = new Order({ customer, items: cart, total });
     const savedOrder = await newOrder.save();
 
+    // 2. Format the Telegram Message
+    let message = `🛒 *New Order Received!*\n\n`;
+    message += `👤 *Customer:* ${customer.name}\n`;
+    message += `📞 *Phone:* ${customer.phone}\n`;
+    message += `📍 *Address:* ${customer.address}\n\n`;
+    message += `📦 *Items:*\n`;
+    cart.forEach(item => {
+      // Handles both your bilingual object and fallback string
+      const itemName = item.name?.en || item.name; 
+      message += `- ${item.quantity}x ${itemName} ($${item.price * item.quantity})\n`;
+    });
+    message += `\n💰 *Total:* $${total}\n`;
+    message += `🧾 *Order ID:* ${savedOrder._id}`;
+
+    // 3. Send the Alert to Telegram
+    if (TELEGRAM_TOKEN && CHAT_ID) {
+      try {
+        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+        await axios.post(telegramUrl, {
+          chat_id: CHAT_ID,
+          text: message,
+          parse_mode: 'Markdown'
+        });
+      } catch (telegramErr) {
+        console.error("Telegram alert failed to send:", telegramErr.message);
+      }
+    } else {
+      console.warn("Telegram Token or Chat ID is missing from Render Environment Variables!");
+    }
+
+    // 4. Respond to frontend
     res.status(200).json({ success: true, orderId: savedOrder._id });
+    
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: "Failed to process order" });

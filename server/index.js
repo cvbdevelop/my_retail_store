@@ -47,31 +47,30 @@ app.post('/api/checkout', async (req, res) => {
     const newOrder = new Order({ customer, items: cart, total });
     const savedOrder = await newOrder.save();
 
-    // 2. Format the Telegram Message
-    let message = `🛒 *New Order Received!*\n\n`;
-    message += `👤 *Customer:* ${customer.name}\n`;
-    message += `📞 *Phone:* ${customer.phone}\n`;
-    message += `📍 *Address:* ${customer.address}\n\n`;
-    message += `📦 *Items:*\n`;
+    // 2. Format the Telegram Message (SAFE PLAIN TEXT)
+    let message = `🛒 NEW ORDER RECEIVED!\n\n`;
+    message += `CUSTOMER: ${customer.name}\n`;
+    message += `PHONE: ${customer.phone}\n`;
+    message += `ADDRESS: ${customer.address}\n\n`;
+    message += `ITEMS:\n`;
     cart.forEach(item => {
-      // Handles both your bilingual object and fallback string
       const itemName = item.name?.en || item.name; 
       message += `- ${item.quantity}x ${itemName} ($${item.price * item.quantity})\n`;
     });
-    message += `\n💰 *Total:* $${total}\n`;
-    message += `🧾 *Order ID:* ${savedOrder._id}`;
+    message += `\nTOTAL: $${total}\n`;
+    message += `ORDER ID: ${savedOrder._id}`;
 
-    // 3. Send the Alert to Telegram
+    // 3. Send the Alert to Telegram (REMOVED STRICT PARSE MODE)
     if (TELEGRAM_TOKEN && CHAT_ID) {
       try {
         const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
         await axios.post(telegramUrl, {
           chat_id: CHAT_ID,
-          text: message,
-          parse_mode: 'Markdown'
+          text: message
         });
+        console.log("Telegram message sent successfully!");
       } catch (telegramErr) {
-        console.error("Telegram alert failed to send:", telegramErr.message);
+        console.error("Telegram alert failed to send! Reason:", telegramErr.response?.data || telegramErr.message);
       }
     } else {
       console.warn("Telegram Token or Chat ID is missing from Render Environment Variables!");

@@ -43,6 +43,18 @@ function App() {
     });
     toast.success(i18n.language === 'en' ? `${product.name.en} added!` : `បានបន្ថែម!`);
   };
+  
+  // --- NEW: UPDATE CART QUANTITY FUNCTION ---
+  const updateCartQuantity = (productId, change) => {
+    setCart((prev) => {
+      return prev.map(item => {
+        if (item._id === productId) {
+          return { ...item, quantity: item.quantity + change };
+        }
+        return item;
+      }).filter(item => item.quantity > 0); // Removes the item if it hits 0
+    });
+  };
 
   const handleCheckout = async () => {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -236,16 +248,34 @@ function App() {
               {/* STEP 1: CART LIST */}
               {checkoutStep === 'cart' && (
                 cart.length === 0 ? (
-                  <div className="text-center py-20 text-gray-400 flex flex-col items-center gap-4"><span className="text-6xl">🛍️</span><p>Your cart is empty.</p></div>
+                  <div className="text-center py-20 text-gray-400 flex flex-col items-center gap-4">
+                    <span className="text-6xl">🛍️</span>
+                    <p>{i18n.language === 'en' ? 'Your cart is empty.' : 'កន្ត្រករបស់អ្នកទទេរ។'}</p>
+                  </div>
                 ) : (
                   cart.map((item) => (
-                    <div key={item._id} className="flex gap-4 items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <div key={item._id} className="flex gap-3 items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
                       <img src={item.image} className="w-16 h-16 object-cover rounded-xl shadow-sm" />
-                      <div className="flex-1">
-                        <h4 className="font-bold text-sm text-gray-800">{item.name?.[i18n.language] || item.name?.en}</h4>
-                        <p className="text-xs text-gray-500 mt-1">${item.price} × {item.quantity}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm text-gray-800 truncate">{item.name?.[i18n.language] || item.name?.en}</h4>
+                        <p className="text-xs text-gray-500 mt-1">${item.price} / {i18n.language === 'en' ? 'ea' : 'មួយ'}</p>
                       </div>
-                      <div className="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">${item.price * item.quantity}</div>
+                      
+                      {/* NEW: Quantity Controls */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm">
+                          <button onClick={() => updateCartQuantity(item._id, -1)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 hover:text-red-500 rounded-l-lg transition">
+                            -
+                          </button>
+                          <span className="text-sm font-bold w-6 text-center">{item.quantity}</span>
+                          <button onClick={() => updateCartQuantity(item._id, 1)} className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 hover:text-blue-500 rounded-r-lg transition">
+                            +
+                          </button>
+                        </div>
+                        <div className="font-bold text-blue-600 bg-blue-50 px-2 py-2 rounded-lg min-w-[3.5rem] text-center">
+                          ${item.price * item.quantity}
+                        </div>
+                      </div>
                     </div>
                   ))
                 )

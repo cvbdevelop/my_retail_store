@@ -3,17 +3,17 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function Admin() {
-  // --- SECURITY STATE ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const SECRET_PIN = "8888"; 
 
+  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]); // NEW: State to hold customer orders
   const [formData, setFormData] = useState({
     nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: ''
   });
 
-  // --- LOGIN LOGIC ---
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === SECRET_PIN) {
@@ -28,32 +28,30 @@ function Admin() {
     try {
       const res = await axios.get('https://my-retail-store.onrender.com/api/products');
       setProducts(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
+  };
+
+  // NEW: Fetch Orders function
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get('https://my-retail-store.onrender.com/api/orders');
+      setOrders(res.data);
+    } catch (err) { console.error(err); }
   };
 
   useEffect(() => { 
     if (isAuthenticated) {
       fetchProducts(); 
+      fetchOrders(); 
     }
   }, [isAuthenticated]);
 
-  // --- PRODUCT LOGIC ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // THE FIX: Nesting the language data exactly how MongoDB expects it
     const newProduct = {
-      name: {
-        en: formData.nameEn,
-        km: formData.nameKm
-      },
+      name: { en: formData.nameEn, km: formData.nameKm },
       price: Number(formData.price),
-      description: {
-        en: formData.descEn,
-        km: formData.descKm
-      },
+      description: { en: formData.descEn, km: formData.descKm },
       image: formData.image,
       category: formData.category || "All"
     };
@@ -64,7 +62,6 @@ function Admin() {
       setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: '' });
       fetchProducts(); 
     } catch (err) { 
-      console.error("The error is:", err.response?.data || err.message); 
       alert("Failed to save. Check the console for the reason.");
     }
   };
@@ -78,7 +75,6 @@ function Admin() {
     }
   };
 
-  // --- 1. THE LOGIN SCREEN ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center font-khmer">
@@ -105,57 +101,127 @@ function Admin() {
     );
   }
 
-  // --- 2. THE SECURE DASHBOARD ---
   return (
     <div className="min-h-screen bg-gray-100 p-8 font-khmer">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <Link to="/" className="text-blue-600 hover:underline font-medium inline-block">
-          ← Back to Store
-        </Link>
+      <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Add Form */}
-        <div className="bg-white p-8 rounded-3xl shadow-xl">
-          <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
-            <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
-            
-            <input type="number" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
-            
-            <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
-            <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
-            
-            <input type="text" placeholder="Image URL" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.image} onChange={(e)=>setFormData({...formData, image:e.target.value})} />
-            
-            <button className="bg-blue-600 text-white py-3 rounded-xl font-bold col-span-2 hover:bg-blue-700 transition shadow-lg active:scale-95">
-              Save Product
+        {/* Top Navigation & Tabs */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <Link to="/" className="text-blue-600 hover:underline font-medium inline-block">
+            ← Back to Store
+          </Link>
+          
+          <div className="flex bg-white rounded-full p-1 shadow-sm border border-gray-200">
+            <button 
+              onClick={() => setActiveTab('products')} 
+              className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'products' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              Inventory Management
             </button>
-          </form>
-        </div>
-
-        {/* Management List */}
-        <div className="bg-white p-8 rounded-3xl shadow-xl">
-          <h2 className="text-2xl font-bold mb-6">Manage Inventory</h2>
-          <div className="space-y-4">
-            {products.map(product => (
-              <div key={product._id} className="flex items-center justify-between border-b pb-4">
-                <div className="flex items-center gap-4">
-                  <img src={product.image} className="w-12 h-12 object-cover rounded-lg" alt="thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
-                  <div>
-                    <p className="font-bold">{product.name?.en}</p>
-                    <p className="text-sm text-gray-500">${product.price}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => deleteProduct(product._id)}
-                  className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-600 hover:text-white transition font-medium"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
+            <button 
+              onClick={() => setActiveTab('orders')} 
+              className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'orders' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              Recent Orders
+              {orders.length > 0 && <span className="ml-2 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{orders.length}</span>}
+            </button>
           </div>
         </div>
+        
+        {/* TAB 1: PRODUCT MANAGEMENT */}
+        {activeTab === 'products' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Add Form */}
+            <div className="bg-white p-8 rounded-3xl shadow-xl">
+              <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
+                <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
+                <input type="number" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
+                <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
+                <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
+                <input type="text" placeholder="Image URL" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.image} onChange={(e)=>setFormData({...formData, image:e.target.value})} />
+                <button className="bg-blue-600 text-white py-3 rounded-xl font-bold col-span-2 hover:bg-blue-700 transition shadow-lg active:scale-95">
+                  Save Product
+                </button>
+              </form>
+            </div>
+
+            {/* Management List */}
+            <div className="bg-white p-8 rounded-3xl shadow-xl">
+              <h2 className="text-2xl font-bold mb-6">Manage Inventory</h2>
+              <div className="space-y-4">
+                {products.map(product => (
+                  <div key={product._id} className="flex items-center justify-between border-b pb-4">
+                    <div className="flex items-center gap-4">
+                      <img src={product.image} className="w-12 h-12 object-cover rounded-lg" alt="thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
+                      <div>
+                        <p className="font-bold">{product.name?.en}</p>
+                        <p className="text-sm text-gray-500">${product.price}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteProduct(product._id)} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-600 hover:text-white transition font-medium">
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: ORDER MANAGEMENT */}
+        {activeTab === 'orders' && (
+          <div className="bg-white p-8 rounded-3xl shadow-xl animate-fade-in">
+            <h2 className="text-2xl font-bold mb-6">Customer Orders</h2>
+            
+            {orders.length === 0 ? (
+              <p className="text-gray-500 text-center py-10">No orders have been placed yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                      <th className="p-4 rounded-tl-xl font-bold">Date</th>
+                      <th className="p-4 font-bold">Customer Details</th>
+                      <th className="p-4 font-bold">Items Purchased</th>
+                      <th className="p-4 rounded-tr-xl font-bold text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {orders.map(order => (
+                      <tr key={order._id} className="hover:bg-blue-50/50 transition-colors">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(order.date).toLocaleDateString()} <br/>
+                          {new Date(order.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </td>
+                        <td className="p-4">
+                          <p className="font-bold text-gray-900">{order.customer?.name}</p>
+                          <p className="text-sm text-gray-600">📞 {order.customer?.phone}</p>
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-2 max-w-xs">{order.customer?.address}</p>
+                        </td>
+                        <td className="p-4">
+                          <ul className="text-sm space-y-1">
+                            {order.items.map((item, idx) => (
+                              <li key={idx} className="flex gap-2 text-gray-700">
+                                <span className="font-medium text-blue-600">{item.quantity}x</span> 
+                                {item.name?.en}
+                              </li>
+                            ))}
+                          </ul>
+                        </td>
+                        <td className="p-4 text-right font-black text-lg text-gray-900">
+                          ${order.total}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

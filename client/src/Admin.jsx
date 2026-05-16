@@ -63,11 +63,11 @@ function Admin() {
         uploadData.append("file", imageFile);
         
         // IMPORTANT: Replace these with your actual Cloud Name and Preset Name!
-        uploadData.append("upload_preset", "YOUR_UPLOAD_PRESET_NAME"); 
-        uploadData.append("cloud_name", "YOUR_CLOUD_NAME"); 
+        uploadData.append("upload_preset", "my_store_upload"); 
+        uploadData.append("cloud_name", "diw2xuquz"); 
 
         const cloudinaryRes = await axios.post(
-          "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload", 
+          "https://api.cloudinary.com/v1_1/diw2xuquz/image/upload", 
           uploadData
         );
         secureImageUrl = cloudinaryRes.data.secure_url; // This is the permanent link!

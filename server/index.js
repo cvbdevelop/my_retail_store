@@ -37,8 +37,10 @@ const Order = mongoose.model('Order', OrderSchema);
 // --- CHECKOUT ROUTE ---
 app.post('/api/checkout', async (req, res) => {
   const { cart, total, customer } = req.body;
-  const TELEGRAM_TOKEN = '8628659881:AAFBZKjP7ynLwVC38fddjd5pmt-AAg6ak7E';
-  const CHAT_ID = '51846992';
+  
+  // 1. SECURITY FIX: Pulling from environment variables instead of hardcoding
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+  const CHAT_ID = process.env.CHAT_ID;
 
   try {
     const newOrder = new Order({ customer, items: cart, total });
@@ -48,6 +50,18 @@ app.post('/api/checkout', async (req, res) => {
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: "Failed to process order" });
+  }
+});
+
+// --- NEW: GET RECENT ORDERS ROUTE ---
+app.get('/api/orders', async (req, res) => {
+  try {
+    // Fetches all orders from MongoDB and sorts them by newest first
+    const orders = await Order.find().sort({ date: -1 });
+    res.status(200).json(orders);
+  } catch (err) {
+    console.error("Failed to fetch orders:", err);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 

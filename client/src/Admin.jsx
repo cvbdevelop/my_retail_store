@@ -7,12 +7,16 @@ function Admin() {
   const [password, setPassword] = useState('');
   const SECRET_PIN = "8888"; 
 
-  const [activeTab, setActiveTab] = useState('products'); // 'products' or 'orders'
+  const [activeTab, setActiveTab] = useState('products');
   const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]); // NEW: State to hold customer orders
+  const [orders, setOrders] = useState([]);
+  
   const [formData, setFormData] = useState({
-    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: ''
+    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: ''
   });
+  // NEW: State to hold the actual image file from your computer
+  const [imageFile, setImageFile] = useState(null); 
+  const [isUploading, setIsUploading] = useState(false); // Shows a loading state
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -48,21 +52,50 @@ function Admin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newProduct = {
-      name: { en: formData.nameEn, km: formData.nameKm },
-      price: Number(formData.price),
-      description: { en: formData.descEn, km: formData.descKm },
-      image: formData.image,
-      category: formData.category || "All"
-    };
+    setIsUploading(true);
+
+    let secureImageUrl = "";
 
     try {
+      // 1. UPLOAD IMAGE TO CLOUDINARY FIRST
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append("file", imageFile);
+        
+        // IMPORTANT: Replace these with your actual Cloud Name and Preset Name!
+        uploadData.append("upload_preset", "YOUR_UPLOAD_PRESET_NAME"); 
+        uploadData.append("cloud_name", "YOUR_CLOUD_NAME"); 
+
+        const cloudinaryRes = await axios.post(
+          "https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload", 
+          uploadData
+        );
+        secureImageUrl = cloudinaryRes.data.secure_url; // This is the permanent link!
+      }
+
+      // 2. SAVE PRODUCT TO MONGODB
+      const newProduct = {
+        name: { en: formData.nameEn, km: formData.nameKm },
+        price: Number(formData.price),
+        description: { en: formData.descEn, km: formData.descKm },
+        image: secureImageUrl, // Use the new Cloudinary link here
+        category: formData.category || "All"
+      };
+
       await axios.post('https://my-retail-store.onrender.com/api/products', newProduct);
       alert("Product Added Successfully!");
-      setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', image: '', category: '' });
+      
+      // Reset the form
+      setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '' });
+      setImageFile(null);
+      document.getElementById('file-upload').value = ""; // Clear file input UI
       fetchProducts(); 
+      
     } catch (err) { 
-      alert("Failed to save. Check the console for the reason.");
+      console.error(err);
+      alert("Failed to save product or upload image.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -132,20 +165,36 @@ function Admin() {
         {activeTab === 'products' && (
           <div className="space-y-8 animate-fade-in">
             {/* Add Form */}
-            <div className="bg-white p-8 rounded-3xl shadow-xl">
-              <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
-                <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
-                <input type="number" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
-                <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
-                <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
-                <input type="text" placeholder="Image URL" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.image} onChange={(e)=>setFormData({...formData, image:e.target.value})} />
-                <button className="bg-blue-600 text-white py-3 rounded-xl font-bold col-span-2 hover:bg-blue-700 transition shadow-lg active:scale-95">
-                  Save Product
-                </button>
-              </form>
+        <div className="bg-white p-8 rounded-3xl shadow-xl">
+          <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
+            <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
+            <input type="number" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
+            <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
+            <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
+            
+            {/* NEW: File Upload Input */}
+            <div className="col-span-2 p-3 border rounded-xl bg-gray-50 flex items-center justify-between">
+              <span className="text-sm text-gray-500 font-bold">Upload Product Image:</span>
+              <input 
+                id="file-upload"
+                type="file" 
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])} 
+                className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                required
+              />
             </div>
+            
+            <button 
+              disabled={isUploading}
+              className={`text-white py-3 rounded-xl font-bold col-span-2 transition shadow-lg active:scale-95 ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              {isUploading ? 'Uploading to Cloud...' : 'Save Product'}
+            </button>
+          </form>
+        </div>
 
             {/* Management List */}
             <div className="bg-white p-8 rounded-3xl shadow-xl">

@@ -12,7 +12,12 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const categories = ["All", "Food & Drink", "Clothes", "Electronics"];
+  const categories = [
+    { value: "All", en: "All", km: "ទាំងអស់" },
+    { value: "Food & Drink", en: "Food & Drink", km: "អាហារ និងភេសជ្ជៈ" },
+    { value: "Clothes", en: "Clothes", km: "សម្លៀកបំពាក់" },
+    { value: "Electronics", en: "Electronics", km: "គ្រឿងអេឡិចត្រូនិក" }
+  ];
   const [gridRef] = useAutoAnimate(); 
   const [cartRef] = useAutoAnimate(); 
 
@@ -189,9 +194,9 @@ function App() {
         {/* CATEGORY PILLS */}
         <div className="flex flex-wrap justify-center gap-3">
           {categories.map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${activeCategory === cat ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}>
-              {cat}
+            <button key={cat.value} onClick={() => setActiveCategory(cat.value)}
+              className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${activeCategory === cat.value ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}>
+              {i18n.language === 'en' ? cat.en : cat.km}
             </button>
           ))}
         </div>
@@ -385,52 +390,58 @@ function App() {
         </div>
       )}
     <footer className="bg-gray-900 text-gray-300 py-12 mt-20 border-t border-gray-800">
-  <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
-    
-    {/* Brand Section */}
-    <div>
-      <h3 className="text-xl font-bold text-white mb-4 tracking-tight">MY RETAIL STORE</h3>
-      <p className="text-sm text-gray-400 leading-relaxed mb-4">
-        {i18n.language === 'en' ? 'Your premium destination for quality goods in Cambodia.' : 'ទិសដៅឈានមុខគេសម្រាប់ទំនិញមានគុណភាពនៅកម្ពុជា។'}
-      </p>
-    </div>
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        {/* Brand Section */}
+        <div>
+          <h3 className="text-xl font-bold text-white mb-4 tracking-tight">MY RETAIL STORE</h3>
+          <p className="text-sm text-gray-400 leading-relaxed mb-4">
+            {i18n.language === 'en' ? 'Your premium destination for quality goods in Cambodia.' : 'ទិសដៅឈានមុខគេសម្រាប់ទំនិញមានគុណភាពនៅកម្ពុជា។'}
+          </p>
+        </div>
 
-    {/* Quick Links */}
-    <div>
-      <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Shop</h4>
-      <ul className="space-y-2 text-sm">
-        <li><a href="#" className="hover:text-blue-400 transition">New Arrivals</a></li>
-        <li><a href="#" className="hover:text-blue-400 transition">Best Sellers</a></li>
-        <li><a href="#" className="hover:text-blue-400 transition">Discounts</a></li>
-      </ul>
-    </div>
+        {/* Quick Links */}
+        <div>
+          <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">
+            {i18n.language === 'en' ? 'Shop' : 'ហាង'}
+          </h4>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'New Arrivals' : 'ទំនិញថ្មីៗ'}</a></li>
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'Best Sellers' : 'លក់ដាច់បំផុត'}</a></li>
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'Discounts' : 'បញ្ចុះតម្លៃ'}</a></li>
+          </ul>
+        </div>
 
-    {/* Customer Support */}
-    <div>
-      <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Support</h4>
-      <ul className="space-y-2 text-sm">
-        <li><a href="#" className="hover:text-blue-400 transition">Contact Us</a></li>
-        <li><a href="#" className="hover:text-blue-400 transition">Shipping & Returns</a></li>
-        <li><a href="#" className="hover:text-blue-400 transition">FAQ</a></li>
-      </ul>
-    </div>
+        {/* Customer Support */}
+        <div>
+          <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">
+            {i18n.language === 'en' ? 'Support' : 'ជំនួយ'}
+          </h4>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'Contact Us' : 'ទាក់ទងមកយើង'}</a></li>
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'Shipping & Returns' : 'ការដឹកជញ្ជូន និងការបង្វិលសង'}</a></li>
+            <li><a href="#" className="hover:text-blue-400 transition">{i18n.language === 'en' ? 'FAQ' : 'សំណួរដែលសួរញឹកញាប់'}</a></li>
+          </ul>
+        </div>
 
-    {/* Payments & Contact */}
-    <div>
-      <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Accepted Payments</h4>
-      <div className="flex gap-3 mb-6">
-         {/* Placeholder for Payment Icons */}
-         <div className="bg-white text-blue-800 text-xs font-bold px-2 py-1 rounded">ABA</div>
-         <div className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">KHQR</div>
+        {/* Payments & Contact */}
+        <div>
+          <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">
+            {i18n.language === 'en' ? 'Accepted Payments' : 'ការទូទាត់ប្រាក់'}
+          </h4>
+          <div className="flex gap-3 mb-6">
+             {/* Placeholder for Payment Icons */}
+             <div className="bg-white text-blue-800 text-xs font-bold px-2 py-1 rounded">ABA</div>
+             <div className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">KHQR</div>
+          </div>
+          <p className="text-sm">📍 {i18n.language === 'en' ? 'Phnom Penh, Cambodia' : 'រាជធានីភ្នំពេញ ប្រទេសកម្ពុជា'}</p>
+        </div>
+        
       </div>
-      <p className="text-sm">📍 Phnom Penh, Cambodia</p>
-    </div>
-    
-  </div>
-  <div className="max-w-6xl mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-sm text-center text-gray-500">
-    © {new Date().getFullYear()} My Retail Store. All rights reserved.
-  </div>
-</footer>
+      <div className="max-w-6xl mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-sm text-center text-gray-500">
+        © {new Date().getFullYear()} My Retail Store. {i18n.language === 'en' ? 'All rights reserved.' : 'រក្សាសិទ្ធិគ្រប់យ៉ាង។'}
+      </div>
+    </footer>
 	</div>
   )
 }

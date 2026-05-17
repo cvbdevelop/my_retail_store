@@ -8,10 +8,19 @@ import './i18n'
 
 function App() {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
+  // --- NEW: PERSISTENT CART STATE ---
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('myStoreCart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  // --- NEW: AUTO-SAVE CART ---
+  useEffect(() => {
+    localStorage.setItem('myStoreCart', JSON.stringify(cart));
+  }, [cart]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const [selectedProduct, setSelectedProduct] = useState(null);
   // 1. Your base categories with perfect Khmer translations
   const baseCategories = [
     { value: "All", en: "All", km: "ទាំងអស់" },
@@ -217,28 +226,70 @@ function App() {
         </div>
       </header>
 
-      {/* PRODUCT GRID */}
+      {/* --- MAIN CONTENT AREA --- */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
-        <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {filteredProducts.map((product) => (
-            <div key={product._id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:-translate-y-1 group">
-              <div className="overflow-hidden rounded-2xl mb-4 aspect-square bg-gray-50 relative">
-                <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name?.[i18n.language] || product.name?.en}</h3>
-              <p className="text-gray-500 text-sm mb-6 line-clamp-2 min-h-[40px] leading-relaxed">{product.description?.[i18n.language] || product.description?.en}</p>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-2xl font-bold text-blue-600 block">${product.price}</span>
-                  <span className="text-xs text-gray-400 font-medium">{(product.price * 4100).toLocaleString()} ៛</span>
+        
+        {!selectedProduct ? (
+          /* SHOW THE PRODUCT GRID IF NOTHING IS SELECTED */
+          <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {filteredProducts.map((product) => (
+              <div key={product._id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:-translate-y-1 group">
+                <div className="overflow-hidden rounded-2xl mb-4 aspect-square bg-gray-50 relative cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                  <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
                 </div>
-                <button onClick={() => addToCart(product)} className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-md active:scale-95">
-                  + {i18n.language === 'en' ? 'Add' : 'បន្ថែម'}
+                <h3 className="text-xl font-bold mb-2 text-gray-800 cursor-pointer hover:text-blue-600 transition" onClick={() => setSelectedProduct(product)}>
+                  {product.name?.[i18n.language] || product.name?.en}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6 line-clamp-2 min-h-[40px] leading-relaxed">{product.description?.[i18n.language] || product.description?.en}</p>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-2xl font-bold text-blue-600 block">${product.price}</span>
+                    <span className="text-xs text-gray-400 font-medium">{(product.price * 4100).toLocaleString()} ៛</span>
+                  </div>
+                  <button onClick={() => addToCart(product)} className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-md active:scale-95">
+                    + {i18n.language === 'en' ? 'Add' : 'បន្ថែម'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* SHOW PRODUCT DETAILS IF AN ITEM IS SELECTED */
+          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 md:p-12 animate-fade-in">
+            <button onClick={() => setSelectedProduct(null)} className="text-gray-500 hover:text-blue-600 font-bold mb-8 flex items-center gap-2 transition-colors">
+              ← {i18n.language === 'en' ? 'Back to all products' : 'ត្រឡប់ទៅកាន់ផលិតផលទាំងអស់'}
+            </button>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 aspect-square">
+                <img src={selectedProduct.image} className="w-full h-full object-cover" alt="Detail" />
+              </div>
+              
+              <div className="flex flex-col justify-center">
+                <span className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">{selectedProduct.category}</span>
+                <h2 className="text-4xl font-black text-gray-900 mb-6">
+                  {selectedProduct.name?.[i18n.language] || selectedProduct.name?.en}
+                </h2>
+                
+                <div className="mb-8">
+                  <span className="text-4xl font-bold text-gray-900 block">${selectedProduct.price}</span>
+                  <span className="text-lg text-gray-500 font-medium block mt-1">{(selectedProduct.price * 4100).toLocaleString()} ៛</span>
+                </div>
+                
+                <p className="text-gray-600 leading-relaxed mb-10 text-lg">
+                  {selectedProduct.description?.[i18n.language] || selectedProduct.description?.en}
+                </p>
+                
+                <button 
+                  onClick={() => addToCart(selectedProduct)} 
+                  className="w-full bg-blue-600 text-white py-4 rounded-2xl text-xl font-bold hover:bg-blue-700 transition shadow-[0_8px_30px_rgb(37,99,235,0.3)] active:scale-95"
+                >
+                  {i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមចូលកន្ត្រក'}
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* CHECKOUT WIZARD SIDEBAR */}

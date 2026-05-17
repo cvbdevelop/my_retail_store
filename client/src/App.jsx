@@ -12,12 +12,25 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const categories = [
+  // 1. Your base categories with perfect Khmer translations
+  const baseCategories = [
     { value: "All", en: "All", km: "ទាំងអស់" },
     { value: "Food & Drink", en: "Food & Drink", km: "អាហារ និងភេសជ្ជៈ" },
     { value: "Clothes", en: "Clothes", km: "សម្លៀកបំពាក់" },
     { value: "Electronics", en: "Electronics", km: "គ្រឿងអេឡិចត្រូនិក" }
   ];
+
+  // 2. Scan the database to find any brand new custom categories
+  const uniqueDbCategories = [...new Set(products.map(p => p.category))].filter(Boolean);
+
+  // 3. Automatically build buttons for any new category found
+  const categories = [...baseCategories];
+  uniqueDbCategories.forEach(cat => {
+    // If the database category isn't in our base list, add it dynamically!
+    if (!categories.find(c => c.value === cat) && cat !== "All") {
+      categories.push({ value: cat, en: cat, km: cat }); 
+    }
+  });
   const [gridRef] = useAutoAnimate(); 
   const [cartRef] = useAutoAnimate(); 
 

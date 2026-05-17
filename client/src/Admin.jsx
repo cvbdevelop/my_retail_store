@@ -173,19 +173,21 @@ function Admin() {
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 
-                {/* --- NEW: CATEGORY DROPDOWN --- */}
+                {/* --- UPDATED: DYNAMIC CATEGORY INPUT --- */}
                 <div className="col-span-2">
-                  <select 
+                  <input 
+                    list="category-options"
+                    placeholder="Select or type a new category (e.g. Shoes)..."
                     className="w-full p-3 border rounded-xl focus:ring-2 outline-none bg-white text-gray-700"
                     value={formData.category} 
                     onChange={(e)=>setFormData({...formData, category: e.target.value})}
                     required
-                  >
-                    <option value="" disabled>Select a Category...</option>
-                    <option value="Food & Drink">Food & Drink</option>
-                    <option value="Clothes">Clothes</option>
-                    <option value="Electronics">Electronics</option>
-                  </select>
+                  />
+                  <datalist id="category-options">
+                    <option value="Food & Drink" />
+                    <option value="Clothes" />
+                    <option value="Electronics" />
+                  </datalist>
                 </div>
                 {/* ------------------------------ */}
 

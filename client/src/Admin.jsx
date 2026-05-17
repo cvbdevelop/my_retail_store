@@ -123,6 +123,15 @@ function Admin() {
     }
   };
 
+  // --- NEW: EXTRACT ALL CATEGORIES FROM DATABASE ---
+  // We keep the base 3, and add any custom ones found in your products list
+  const availableCategories = [...new Set([
+    "Food & Drink", 
+    "Clothes", 
+    "Electronics", 
+    ...products.map(p => p.category)
+  ])].filter(Boolean);
+  
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center font-khmer">
@@ -184,9 +193,10 @@ function Admin() {
                     required
                   />
                   <datalist id="category-options">
-                    <option value="Food & Drink" />
-                    <option value="Clothes" />
-                    <option value="Electronics" />
+                    {/* Loops through every category found in the database! */}
+                    {availableCategories.map(cat => (
+                      <option key={cat} value={cat} />
+                    ))}
                   </datalist>
                 </div>
                 {/* ------------------------------ */}

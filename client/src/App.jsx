@@ -12,7 +12,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const categories = ["All", "Food & Drink", "Apparel", "Electronics"];
+  const categories = ["All", "Food & Drink", "Clothes", "Electronics"];
   const [gridRef] = useAutoAnimate(); 
   const [cartRef] = useAutoAnimate(); 
 
@@ -84,7 +84,7 @@ function App() {
     const matchesSearch = nameEn.includes(searchLower) || nameKm.includes(searchTerm);
     let matchesCategory = true;
     if (activeCategory === 'Food & Drink') matchesCategory = nameEn.match(/wine|matcha|tea|food/i);
-    if (activeCategory === 'Apparel') matchesCategory = nameEn.match(/scarf|shirt|dress|clothing/i);
+    if (activeCategory === 'Clothes') matchesCategory = nameEn.match(/scarf|shirt|dress|clothing/i);
     if (activeCategory === 'Electronics') matchesCategory = nameEn.match(/tech|hub|watch|cam/i);
     return matchesSearch && matchesCategory;
   });

@@ -17,7 +17,6 @@ function Admin() {
   const [imageFile, setImageFile] = useState(null); 
   const [isUploading, setIsUploading] = useState(false); 
 
-  // NEW: State to track if we are editing an existing product
   const [editingId, setEditingId] = useState(null);
 
   const handleLogin = (e) => {
@@ -44,7 +43,6 @@ function Admin() {
     if (isAuthenticated) { fetchProducts(); fetchOrders(); }
   }, [isAuthenticated]);
 
-  // NEW: Function to load product data into the form when "Edit" is clicked
   const handleEditClick = (product) => {
     setEditingId(product._id);
     setFormData({
@@ -55,12 +53,11 @@ function Admin() {
       descKm: product.description?.km || '',
       category: product.category || 'All'
     });
-    setImageFile(null); // Clear any pending file uploads
-    document.getElementById('file-upload').value = ""; // Clear file input UI
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll up to the form
+    setImageFile(null); 
+    document.getElementById('file-upload').value = ""; 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
   };
 
-  // NEW: Function to cancel editing and clear the form
   const cancelEdit = () => {
     setEditingId(null);
     setFormData({ nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '' });
@@ -72,27 +69,24 @@ function Admin() {
     e.preventDefault();
     setIsUploading(true);
 
-    // If we are editing, default to the existing image. If new, default to blank.
     let secureImageUrl = editingId 
       ? products.find(p => p._id === editingId)?.image 
       : "";
 
     try {
-      // 1. Only upload to Cloudinary if the user selected a NEW image file
       if (imageFile) {
         const uploadData = new FormData();
         uploadData.append("file", imageFile);
-        uploadData.append("upload_preset", "my_store_upload"); // <-- RESTORE YOUR PRESET
-        uploadData.append("cloud_name", "diw2xuquz"); // <-- RESTORE YOUR CLOUD NAME
+        uploadData.append("upload_preset", "my_store_upload"); 
+        uploadData.append("cloud_name", "diw2xuquz"); 
 
         const cloudinaryRes = await axios.post(
-          "https://api.cloudinary.com/v1_1/diw2xuquz/image/upload", // <-- RESTORE YOUR CLOUD NAME
+          "https://api.cloudinary.com/v1_1/diw2xuquz/image/upload", 
           uploadData
         );
         secureImageUrl = cloudinaryRes.data.secure_url; 
       }
 
-      // 2. Prepare the product data
       const productData = {
         name: { en: formData.nameEn, km: formData.nameKm },
         price: Number(formData.price),
@@ -101,7 +95,6 @@ function Admin() {
         category: formData.category || "All"
       };
 
-      // 3. Decide whether to PUT (update) or POST (create new)
       if (editingId) {
         await axios.put(`https://my-retail-store.onrender.com/api/products/${editingId}`, productData);
         alert("Product Updated Successfully!");
@@ -110,7 +103,6 @@ function Admin() {
         alert("Product Added Successfully!");
       }
       
-      // Reset the form
       cancelEdit();
       fetchProducts(); 
       
@@ -131,7 +123,6 @@ function Admin() {
     }
   };
 
-  // ... (Keep your existing Login screen HTML) ...
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center font-khmer">
@@ -151,7 +142,6 @@ function Admin() {
     <div className="min-h-screen bg-gray-100 p-8 font-khmer">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Top Navigation & Tabs */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <Link to="/" className="text-blue-600 hover:underline font-medium inline-block">← Back to Store</Link>
           <div className="flex bg-white rounded-full p-1 shadow-sm border border-gray-200">
@@ -162,10 +152,8 @@ function Admin() {
           </div>
         </div>
         
-        {/* TAB 1: PRODUCT MANAGEMENT */}
         {activeTab === 'products' && (
           <div className="space-y-8 animate-fade-in">
-            {/* Add/Edit Form */}
             <div className={`p-8 rounded-3xl shadow-xl transition-colors ${editingId ? 'bg-blue-50 border-2 border-blue-200' : 'bg-white'}`}>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -185,6 +173,22 @@ function Admin() {
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 
+                {/* --- NEW: CATEGORY DROPDOWN --- */}
+                <div className="col-span-2">
+                  <select 
+                    className="w-full p-3 border rounded-xl focus:ring-2 outline-none bg-white text-gray-700"
+                    value={formData.category} 
+                    onChange={(e)=>setFormData({...formData, category: e.target.value})}
+                    required
+                  >
+                    <option value="" disabled>Select a Category...</option>
+                    <option value="Food & Drink">Food & Drink</option>
+                    <option value="Clothes">Clothes</option>
+                    <option value="Electronics">Electronics</option>
+                  </select>
+                </div>
+                {/* ------------------------------ */}
+
                 <div className="col-span-2 p-3 border rounded-xl bg-white flex items-center justify-between">
                   <span className="text-sm text-gray-500 font-bold">
                     {editingId ? 'Update Image (Optional):' : 'Upload Product Image:'}
@@ -198,7 +202,6 @@ function Admin() {
               </form>
             </div>
 
-            {/* Management List */}
             <div className="bg-white p-8 rounded-3xl shadow-xl">
               <h2 className="text-2xl font-bold mb-6">Manage Inventory</h2>
               <div className="space-y-4">
@@ -227,7 +230,6 @@ function Admin() {
           </div>
         )}
 
-        {/* ... (Keep your existing Order TAB code here) ... */}
         {activeTab === 'orders' && (
           <div className="bg-white p-8 rounded-3xl shadow-xl animate-fade-in">
             <h2 className="text-2xl font-bold mb-6">Customer Orders</h2>

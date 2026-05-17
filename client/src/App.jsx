@@ -82,15 +82,17 @@ function App() {
     }
   };
 
+  // --- UPDATED SEARCH & CATEGORY FILTER LOGIC ---
   const filteredProducts = products.filter(p => {
+    // 1. Search Bar Logic
     const searchLower = searchTerm.toLowerCase();
     const nameEn = p.name?.en?.toLowerCase() || "";
     const nameKm = p.name?.km || "";
     const matchesSearch = nameEn.includes(searchLower) || nameKm.includes(searchTerm);
-    let matchesCategory = true;
-    if (activeCategory === 'Food & Drink') matchesCategory = nameEn.match(/wine|matcha|tea|food/i);
-    if (activeCategory === 'Clothes') matchesCategory = nameEn.match(/scarf|shirt|dress|clothing/i);
-    if (activeCategory === 'Electronics') matchesCategory = nameEn.match(/tech|hub|watch|cam/i);
+
+    // 2. Category Tab Logic
+    const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
+
     return matchesSearch && matchesCategory;
   });
 

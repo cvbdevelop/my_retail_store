@@ -243,7 +243,7 @@ function App() {
                 <p className="text-gray-500 text-sm mb-6 line-clamp-2 min-h-[40px] leading-relaxed">{product.description?.[i18n.language] || product.description?.en}</p>
                 <div className="flex justify-between items-end">
                   <div>
-                    <span className="text-2xl font-bold text-blue-600 block">${product.price}</span>
+                    <span className="text-2xl font-bold text-blue-600 block">${product.price.toFixed(2)}</span>
                     <span className="text-xs text-gray-400 font-medium">{(product.price * 4100).toLocaleString()} ៛</span>
                   </div>
                   <button onClick={() => addToCart(product)} className="bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-md active:scale-95">
@@ -331,6 +331,10 @@ function App() {
                         <h4 className="font-bold text-sm text-gray-800 truncate">{item.name?.[i18n.language] || item.name?.en}</h4>
                         <p className="text-xs text-gray-500 mt-1">${item.price} / {i18n.language === 'en' ? 'ea' : 'មួយ'}</p>
                       </div>
+					  
+						<div className="font-bold text-blue-600 bg-blue-50 px-2 py-2 rounded-lg min-w-[3.5rem] text-center">
+							${(item.price * item.quantity).toFixed(2)}
+						</div>
                       
                       {/* NEW: Quantity Controls */}
                       <div className="flex items-center gap-2">
@@ -418,7 +422,7 @@ function App() {
               {checkoutStep === 'cart' && (
                 <>
                   <div className="flex justify-between text-xl font-bold mb-6 text-gray-800">
-                    <span>{i18n.language === 'en' ? 'Total' : 'សរុប'}</span><span className="text-blue-600">${cartTotal}</span>
+                    <span>{i18n.language === 'en' ? 'Total' : 'សរុប'}</span><span className="text-blue-600">${cartTotal.toFixed(2)}</span>
                   </div>
                   <button onClick={() => setCheckoutStep('delivery')} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition shadow-lg disabled:bg-gray-200" disabled={cart.length === 0}>
                     {i18n.language === 'en' ? 'Proceed to Checkout' : 'បន្តទៅការទូទាត់ប្រាក់'}

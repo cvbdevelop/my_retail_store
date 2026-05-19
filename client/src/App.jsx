@@ -135,7 +135,7 @@ function App() {
             onClick={() => { setActiveCategory("All"); setSelectedProduct(null); }}
           >
             <img 
-              src="/logo.jpg" 
+              src="/logo.png" {/* <-- CHANGE THIS TO .png */}
               alt="My Retail Store Logo" 
               className="h-16 md:h-20 w-auto object-contain drop-shadow-sm" 
             />

@@ -89,7 +89,7 @@ function Admin() {
 
       const productData = {
         name: { en: formData.nameEn, km: formData.nameKm },
-        price: Number(formData.price),
+        price: parseFloat(formData.price), // <-- Changed this line to ensure decimals pass through
         description: { en: formData.descEn, km: formData.descKm },
         image: secureImageUrl, 
         category: formData.category || "All"
@@ -178,7 +178,7 @@ function Admin() {
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
                 <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
-                <input type="number" step="0.01" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
+                <input type="number" step="any" placeholder="Price ($)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price: e.target.value})} required />
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 
@@ -223,7 +223,7 @@ function Admin() {
                       <img src={product.image} className="w-12 h-12 object-cover rounded-lg" alt="thumb" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
                       <div>
                         <p className="font-bold text-gray-800">{product.name?.en}</p>
-                        <p className="text-sm text-blue-600 font-bold">${product.price}</p>
+                        <p className="text-sm text-blue-600 font-bold">${Number(product.price).toFixed(2)}</p>
                       </div>
                     </div>
                     

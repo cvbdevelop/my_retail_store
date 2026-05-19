@@ -90,7 +90,8 @@ function App() {
     { value: "All", en: "All Categories", km: "ប្រភេទទាំងអស់" },
     { value: "Food & Drink", en: "Food & Drink", km: "អាហារ និងភេសជ្ជៈ" },
     { value: "Clothes", en: "Clothes", km: "សម្លៀកបំពាក់" },
-    { value: "Electronics", en: "Electronics", km: "គ្រឿងអេឡិចត្រូនិក" }
+    { value: "Electronics", en: "Electronics", km: "គ្រឿងអេឡិចត្រូនិក" },
+    { value: "Sports & Outdoors", en: "Sports & Outdoors", km: "កីឡា និងសកម្មភាពក្រៅផ្ទះ" }
   ];
 
   const uniqueDbCategories = [...new Set(products.map(p => p.category))].filter(Boolean);

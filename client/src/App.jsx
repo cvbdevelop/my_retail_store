@@ -91,7 +91,9 @@ function App() {
     { value: "Food & Drink", en: "Food & Drink", km: "អាហារ និងភេសជ្ជៈ" },
     { value: "Clothes", en: "Clothes", km: "សម្លៀកបំពាក់" },
     { value: "Electronics", en: "Electronics", km: "គ្រឿងអេឡិចត្រូនិក" },
-    { value: "Sports & Outdoors", en: "Sports & Outdoors", km: "កីឡា និងសកម្មភាពក្រៅផ្ទះ" }
+    { value: "Sports & Outdoors", en: "Sports & Outdoors", km: "កីឡា និងសកម្មភាពក្រៅផ្ទះ" },
+    // Just add your new one here!
+    { value: "Toys", en: "Toys", km: "ប្រដាប់ក្មេងលេង" } 
   ];
 
   const uniqueDbCategories = [...new Set(products.map(p => p.category))].filter(Boolean);

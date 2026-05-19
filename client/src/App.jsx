@@ -189,7 +189,7 @@ function App() {
                 <input 
                   type="text" 
                   placeholder={i18n.language === 'en' ? "Search" : "ស្វែងរក"}
-                  className="w-full md:w-64 py-1.5 px-3 pr-8 text-gray-800 text-sm focus:outline-none"
+                  className="w-full md:w-64 py-1.5 px-3 pr-8 bg-white rounded text-gray-800 text-sm focus:outline-none shadow-inner"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

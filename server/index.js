@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const productRoutes = require('./routes/productRoutes');
+// Add this near the top with your other imports
+const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -10,6 +12,8 @@ const app = express();
 // --- 1. GOD MODE CORS (Allows absolutely everything) ---
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+// Add this further down with your other app.use statements
+app.use('/api/auth', authRoutes);
 
 // --- 2. HEALTH CHECK (Proves the server is online) ---
 app.get('/', (req, res) => {

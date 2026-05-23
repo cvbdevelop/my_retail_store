@@ -27,6 +27,15 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const { t, i18n } = useTranslation();
+  
+  // --- NEW: AUTHENTICATION STATE ---
+  const [authUser, setAuthUser] = useState(() => {
+    const saved = localStorage.getItem('myStoreUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('myStoreToken') || null);
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [isLoginMode, setIsLoginMode] = useState(true);
 
   // AUTO-SAVE CART
   useEffect(() => {
@@ -83,6 +92,46 @@ function App() {
     } catch (error) {
       toast.error("Checkout failed. Server error.", { id: toastId });
     }
+  };
+  
+  // --- NEW: AUTHENTICATION LOGIC ---
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+    const toastId = toast.loading(isLoginMode ? "Logging in..." : "Creating account...");
+
+    try {
+      const res = await axios.post(`https://my-retail-store.onrender.com${endpoint}`, authForm);
+      
+      // Save the token and user to browser storage
+      localStorage.setItem('myStoreToken', res.data.token);
+      localStorage.setItem('myStoreUser', JSON.stringify(res.data.user));
+      
+      setAuthToken(res.data.token);
+      setAuthUser(res.data.user);
+      
+      // Pre-fill delivery info if they have it
+      setCustomerInfo({ 
+        name: res.data.user.name || '', 
+        phone: res.data.user.phone || '', 
+        address: res.data.user.address || '' 
+      });
+
+      toast.success(`Welcome, ${res.data.user.name}!`, { id: toastId });
+      if (checkoutStep === 'auth') setCheckoutStep('delivery');
+      
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Authentication failed", { id: toastId });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('myStoreToken');
+    localStorage.removeItem('myStoreUser');
+    setAuthToken(null);
+    setAuthUser(null);
+    setCustomerInfo({ name: '', phone: '', address: '' });
+    toast.success("Logged out successfully");
   };
 
   // DYNAMIC CATEGORY LOGIC
@@ -155,6 +204,15 @@ function App() {
             
             {/* Admin and Language Toggles */}
             <div className="flex items-center ml-4 pl-4 border-l border-gray-300 gap-4">
+              {authUser ? (
+                <button onClick={handleLogout} className="text-xs font-bold text-gray-600 hover:text-red-700 uppercase">
+                  {i18n.language === 'en' ? `Hi, ${authUser.name.split(' ')[0]} (Logout)` : `សួស្តី, ${authUser.name.split(' ')[0]} (ចាកចេញ)`}
+                </button>
+              ) : (
+                <button onClick={() => { setIsCartOpen(true); setCheckoutStep('auth'); }} className="text-xs font-bold text-gray-400 hover:text-red-700 uppercase">
+                  {i18n.language === 'en' ? 'Login' : 'ចូលគណនី'}
+                </button>
+              )}
               <Link to="/admin" className="hover:text-red-700 transition font-medium text-xs uppercase tracking-wider text-gray-400">Admin</Link>
               <button onClick={toggleLang} className="hover:text-red-700 transition font-bold uppercase text-xs">
                 {i18n.language === 'en' ? 'KH' : 'EN'}
@@ -352,6 +410,42 @@ function App() {
                 )
               )}
 
+{/* --- NEW: STEP 1.5: LOGIN/REGISTER --- */}
+              {checkoutStep === 'auth' && (
+                <div className="space-y-6 pt-4 animate-fade-in">
+                  <div className="flex justify-center space-x-4 mb-6 border-b pb-4">
+                    <button onClick={() => setIsLoginMode(true)} className={`font-bold pb-2 px-4 ${isLoginMode ? 'text-red-700 border-b-2 border-red-700' : 'text-gray-400'}`}>Login</button>
+                    <button onClick={() => setIsLoginMode(false)} className={`font-bold pb-2 px-4 ${!isLoginMode ? 'text-red-700 border-b-2 border-red-700' : 'text-gray-400'}`}>Register</button>
+                  </div>
+
+                  <form onSubmit={handleAuth} className="space-y-4">
+                    {!isLoginMode && (
+                      <div>
+                        <label className="text-xs font-bold text-gray-700 block mb-1">Full Name</label>
+                        <input type="text" required className="w-full p-3 border focus:border-red-700 outline-none" value={authForm.name} onChange={e => setAuthForm({...authForm, name: e.target.value})} />
+                      </div>
+                    )}
+                    <div>
+                      <label className="text-xs font-bold text-gray-700 block mb-1">Email Address</label>
+                      <input type="email" required className="w-full p-3 border focus:border-red-700 outline-none" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-700 block mb-1">Password</label>
+                      <input type="password" required className="w-full p-3 border focus:border-red-700 outline-none" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
+                    </div>
+                    
+                    <button type="submit" className="w-full bg-red-700 text-white py-4 font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition mt-4">
+                      {isLoginMode ? 'Sign In' : 'Create Account'}
+                    </button>
+                    
+                    {/* Skip Login Option */}
+                    <button type="button" onClick={() => setCheckoutStep('delivery')} className="w-full text-gray-500 py-3 text-xs uppercase font-bold hover:text-red-700 transition">
+                      Continue as Guest
+                    </button>
+                  </form>
+                </div>
+              )}
+
               {/* STEP 2: DELIVERY FORM */}
               {checkoutStep === 'delivery' && (
                 <div className="space-y-4">
@@ -412,7 +506,7 @@ function App() {
                   <div className="flex justify-between text-lg font-bold mb-6 text-gray-800">
                     <span>{i18n.language === 'en' ? 'Total' : 'សរុប'}</span><span className="text-red-700">${cartTotal.toFixed(2)}</span>
                   </div>
-                  <button onClick={() => setCheckoutStep('delivery')} className="w-full bg-red-700 text-white py-4 font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition disabled:bg-gray-300" disabled={cart.length === 0}>
+                  <button onClick={() => setCheckoutStep(authUser ? 'delivery' : 'auth')} className="w-full bg-red-700 text-white py-4 font-bold text-sm uppercase tracking-widest hover:bg-gray-900 transition disabled:bg-gray-300" disabled={cart.length === 0}>
                     {i18n.language === 'en' ? 'Checkout' : 'ទូទាត់ប្រាក់'}
                   </button>
                 </>

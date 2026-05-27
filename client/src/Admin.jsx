@@ -3,9 +3,10 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const SECRET_PIN = "8888"; 
+  // Checks if a token already exists when the page loads!
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('myStoreToken'));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState(''); 
 
   const [activeTab, setActiveTab] = useState('products');
   const [products, setProducts] = useState([]);
@@ -19,10 +20,26 @@ function Admin() {
 
   const [editingId, setEditingId] = useState(null);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === SECRET_PIN) setIsAuthenticated(true);
-    else { alert("Incorrect password!"); setPassword(''); }
+    try {
+      const res = await axios.post('https://my-retail-store.onrender.com/api/auth/login', { email, password });
+      
+      // Save the real token to the browser
+      localStorage.setItem('myStoreToken', res.data.token);
+      localStorage.setItem('myStoreUser', JSON.stringify(res.data.user));
+      
+      setIsAuthenticated(true);
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed! Check your email and password.");
+      setPassword('');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('myStoreToken');
+    localStorage.removeItem('myStoreUser');
+    setIsAuthenticated(false);
   };
 
   const fetchProducts = async () => {
@@ -137,9 +154,10 @@ function Admin() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center font-khmer">
         <div className="bg-white p-10 rounded-3xl shadow-xl max-w-sm w-full text-center">
           <h2 className="text-2xl font-bold mb-6">Admin Access</h2>
-          <form onSubmit={handleLogin}>
-            <input type="password" placeholder="Enter Secret PIN" className="w-full p-4 border rounded-xl mb-4 text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 outline-none" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
-            <button type="submit" className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg active:scale-95">Unlock Dashboard</button>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="email" placeholder="Admin Email" className="w-full p-4 border rounded-xl text-center focus:ring-2 focus:ring-blue-500 outline-none" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+            <input type="password" placeholder="Password" className="w-full p-4 border rounded-xl text-center focus:ring-2 focus:ring-blue-500 outline-none" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <button type="submit" className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg active:scale-95 mt-2">Secure Login</button>
           </form>
           <Link to="/" className="block mt-6 text-sm text-gray-400 hover:text-blue-600 transition">← Back to Store</Link>
         </div>
@@ -152,7 +170,10 @@ function Admin() {
       <div className="max-w-6xl mx-auto space-y-8">
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link to="/" className="text-blue-600 hover:underline font-medium inline-block">← Back to Store</Link>
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-blue-600 hover:underline font-medium inline-block">← Back to Store</Link>
+            <button onClick={handleLogout} className="text-red-500 hover:text-red-700 font-bold text-sm underline transition">Log Out</button>
+          </div>
           <div className="flex bg-white rounded-full p-1 shadow-sm border border-gray-200">
             <button onClick={() => setActiveTab('products')} className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'products' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}>Inventory Management</button>
             <button onClick={() => setActiveTab('orders')} className={`px-8 py-2.5 rounded-full text-sm font-bold transition-all ${activeTab === 'orders' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}>

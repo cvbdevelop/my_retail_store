@@ -14,7 +14,7 @@ function App() {
     const savedCart = localStorage.getItem('myStoreCart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
-  
+  const [myPastOrders, setMyPastOrders] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -125,6 +125,17 @@ function App() {
     }
   };
 
+  const fetchMyOrders = async () => {
+    try {
+      const res = await axios.get('https://my-retail-store.onrender.com/api/orders');
+      // Filter orders to only show the ones belonging to the logged-in user
+      const userOrders = res.data.filter(order => order.customer?.name === authUser.name);
+      setMyPastOrders(userOrders);
+    } catch (error) {
+      console.error("Failed to fetch orders", error);
+    }
+  };
+  
   const handleLogout = () => {
     localStorage.removeItem('myStoreToken');
     localStorage.removeItem('myStoreUser');
@@ -205,9 +216,14 @@ function App() {
             {/* Admin and Language Toggles */}
             <div className="flex items-center ml-4 pl-4 border-l border-gray-300 gap-4">
               {authUser ? (
-                <button onClick={handleLogout} className="text-xs font-bold text-gray-600 hover:text-red-700 uppercase">
-                  {i18n.language === 'en' ? `Hi, ${authUser.name.split(' ')[0]} (Logout)` : `សួស្តី, ${authUser.name.split(' ')[0]} (ចាកចេញ)`}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => { setIsCartOpen(true); setCheckoutStep('orders'); fetchMyOrders(); }} className="text-xs font-bold text-gray-600 hover:text-red-700 uppercase">
+                    {i18n.language === 'en' ? 'My Orders' : 'ការបញ្ជាទិញរបស់ខ្ញុំ'}
+                  </button>
+                  <button onClick={handleLogout} className="text-xs font-bold text-gray-600 hover:text-red-700 uppercase border-l pl-3 border-gray-300">
+                    {i18n.language === 'en' ? `Hi, ${authUser.name.split(' ')[0]} (Logout)` : `សួស្តី, ${authUser.name.split(' ')[0]} (ចាកចេញ)`}
+                  </button>
+                </div>
               ) : (
                 <button onClick={() => { setIsCartOpen(true); setCheckoutStep('auth'); }} className="text-xs font-bold text-gray-400 hover:text-red-700 uppercase">
                   {i18n.language === 'en' ? 'Login' : 'ចូលគណនី'}
@@ -445,7 +461,44 @@ function App() {
                   </form>
                 </div>
               )}
+			  
+{/* --- NEW: STEP 4: MY ORDERS --- */}
+              {checkoutStep === 'orders' && (
+                <div className="space-y-4 pt-4 animate-fade-in">
+                  <h3 className="font-bold text-lg border-b pb-2 mb-4 text-gray-800">
+                    {i18n.language === 'en' ? 'Order History' : 'ប្រវត្តិការបញ្ជាទិញ'}
+                  </h3>
+                  
+                  {myPastOrders.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center py-10">
+                      {i18n.language === 'en' ? 'You have no past orders.' : 'អ្នកមិនមានប្រវត្តិការបញ្ជាទិញទេ។'}
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {myPastOrders.map(order => (
+                        <div key={order._id} className="border rounded-xl p-4 bg-gray-50 shadow-sm">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs text-gray-500 font-bold">{new Date(order.date).toLocaleDateString()}</span>
+                            <span className="font-black text-red-700">${Number(order.total).toFixed(2)}</span>
+                          </div>
+                          <ul className="text-sm space-y-1">
+                            {order.items.map((item, idx) => (
+                              <li key={idx} className="flex justify-between text-gray-700">
+                                <span><span className="text-red-700 font-bold">{item.quantity}x</span> {item.name?.en}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
+                  <button onClick={() => setCheckoutStep('cart')} className="w-full text-gray-500 py-3 text-xs uppercase font-bold hover:text-red-700 transition mt-4">
+                    ← {i18n.language === 'en' ? 'Back to Cart' : 'ត្រឡប់ទៅកន្ត្រក'}
+                  </button>
+                </div>
+              )}
+			  
               {/* STEP 2: DELIVERY FORM */}
               {checkoutStep === 'delivery' && (
                 <div className="space-y-4">

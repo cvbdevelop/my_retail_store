@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const { verifyAdmin } = require('../middleware/auth'); // <-- ADD THIS LINE
 
 // Get all products
 router.get('/', async (req, res) => {
@@ -13,7 +14,8 @@ router.get('/', async (req, res) => {
 });
 
 // Add a new product
-router.post('/', async (req, res) => {
+// POST a new product (PROTECTED)
+router.post('/', verifyAdmin, async (req, res) => {
   const product = new Product(req.body);
   try {
     const newProduct = await product.save();
@@ -24,7 +26,8 @@ router.post('/', async (req, res) => {
 });
 
 // DELETE a product
-router.delete('/:id', async (req, res) => {
+// DELETE a product (PROTECTED)
+router.delete('/:id', verifyAdmin, async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct) {
@@ -37,7 +40,8 @@ router.delete('/:id', async (req, res) => {
 });
 
 // UPDATE a product
-router.put('/:id', async (req, res) => {
+// PUT update a product (PROTECTED)
+router.put('/:id', verifyAdmin, async (req, res) => {
   try {
     // Finds the product by its ID and replaces its data with the new form data
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });

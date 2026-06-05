@@ -4,7 +4,10 @@ import { Link } from 'react-router-dom';
 
 function Admin() {
   // Checks if a token already exists when the page loads!
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('myStoreToken'));
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const savedUser = JSON.parse(localStorage.getItem('myStoreUser'));
+    return savedUser && savedUser.role === 'admin';
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); 
 
@@ -25,6 +28,12 @@ function Admin() {
     try {
       const res = await axios.post('https://my-retail-store.onrender.com/api/auth/login', { email, password });
       
+      // --- THE BOUNCER: Reject standard customers ---
+      if (res.data.user.role !== 'admin') {
+        alert("Access Denied: You do not have administrator privileges.");
+        return; // Stop the login process here!
+      }
+
       // Save the real token to the browser
       localStorage.setItem('myStoreToken', res.data.token);
       localStorage.setItem('myStoreUser', JSON.stringify(res.data.user));
@@ -112,11 +121,15 @@ function Admin() {
         category: formData.category || "All"
       };
 
+      const config = {
+        headers: { Authorization: `Bearer ${localStorage.getItem('myStoreToken')}` }
+      };
+
       if (editingId) {
-        await axios.put(`https://my-retail-store.onrender.com/api/products/${editingId}`, productData);
+        await axios.put(`https://my-retail-store.onrender.com/api/products/${editingId}`, productData, config);
         alert("Product Updated Successfully!");
       } else {
-        await axios.post('https://my-retail-store.onrender.com/api/products', productData);
+        await axios.post('https://my-retail-store.onrender.com/api/products', productData, config);
         alert("Product Added Successfully!");
       }
       
@@ -134,7 +147,10 @@ function Admin() {
   const deleteProduct = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await axios.delete(`https://my-retail-store.onrender.com/api/products/${id}`);
+        const config = {
+          headers: { Authorization: `Bearer ${localStorage.getItem('myStoreToken')}` }
+        };
+        await axios.delete(`https://my-retail-store.onrender.com/api/products/${id}`, config);
         fetchProducts(); 
       } catch (err) { console.error(err); }
     }

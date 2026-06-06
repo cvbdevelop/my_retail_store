@@ -139,9 +139,11 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('myStoreToken');
     localStorage.removeItem('myStoreUser');
+	localStorage.removeItem('cart'); // <-- ADD THIS: Clears the saved cart memory
     setAuthToken(null);
     setAuthUser(null);
     setCustomerInfo({ name: '', phone: '', address: '' });
+	setCart([]); // <-- ADD THIS: Empties the cart immediately on the screen
     toast.success("Logged out successfully");
   };
 

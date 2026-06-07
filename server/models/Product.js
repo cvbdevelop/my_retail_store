@@ -11,10 +11,10 @@ const productSchema = new mongoose.Schema({
     km: { type: String }
   },
   category: { type: String, required: true },
-  imageUrl: { type: String, required: true },
+  image: { type: String, required: true }, // <--- Changed back to "image"
   
   // --- NEW: INVENTORY & VARIANTS ---
-  stock: { type: Number, default: 0 }, // Tracks total items available
+  stock: { type: Number, default: 0 },
   variants: [{
     name: { type: String }, // e.g., "Size", "Color"
     options: [{ type: String }] // e.g., ["S", "M", "L"] or ["Red", "Blue"]

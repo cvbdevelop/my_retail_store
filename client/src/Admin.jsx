@@ -218,14 +218,8 @@ function Admin() {
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" placeholder="Name (EN)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameEn} onChange={(e)=>setFormData({...formData, nameEn:e.target.value})} required />
                 <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
-                <input 
-                  type="number" 
-                  placeholder="Stock Quantity (ចំនួនស្តុក)" 
-                  className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" 
-                  value={formData.stock} 
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })} 
-                  required 
-                />
+                <input type="number" step="any" placeholder="Price ($)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
+                <input type="number" placeholder="Stock Quantity (ចំនួនស្តុក)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 

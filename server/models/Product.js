@@ -1,17 +1,25 @@
 const mongoose = require('mongoose');
 
-const ProductSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
   name: {
     en: { type: String, required: true },
     km: { type: String, required: true }
   },
   price: { type: Number, required: true },
   description: {
-    en: String,
-    km: String
+    en: { type: String },
+    km: { type: String }
   },
-  image: { type: String, default: "https://via.placeholder.com/300" },
-  category: String
-});
+  category: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  
+  // --- NEW: INVENTORY & VARIANTS ---
+  stock: { type: Number, default: 0 }, // Tracks total items available
+  variants: [{
+    name: { type: String }, // e.g., "Size", "Color"
+    options: [{ type: String }] // e.g., ["S", "M", "L"] or ["Red", "Blue"]
+  }]
+  
+}, { timestamps: true });
 
-module.exports = mongoose.model('Product', ProductSchema);
+module.exports = mongoose.model('Product', productSchema);

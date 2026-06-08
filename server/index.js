@@ -38,7 +38,6 @@ const OrderSchema = new mongoose.Schema({
   total: Number,
   date: { type: Date, default: Date.now }
 });
-const Order = mongoose.model('Order', OrderSchema);
   
 // --- CHECKOUT ROUTE ---
 app.post('/api/checkout', async (req, res) => {

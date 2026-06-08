@@ -54,7 +54,15 @@ function App() {
 
   const toggleLang = () => { i18n.changeLanguage(i18n.language === 'en' ? 'km' : 'en'); };
 
-  const addToCart = (product) => {
+ const addToCart = (product) => {
+    // 1. Check if the item is already maxed out in the cart
+    const existingItem = cart.find(item => item._id === product._id);
+    if (existingItem && existingItem.quantity >= product.stock) {
+      toast.error(i18n.language === 'en' ? `Only ${product.stock} in stock!` : `មានតែ ${product.stock} ក្នុងស្តុក!`);
+      return; // Stop the function completely!
+    }
+
+    // 2. If it is safe, proceed with adding it
     setCart((prev) => {
       const existing = prev.find(item => item._id === product._id);
       if (existing) return prev.map(item => item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item);
@@ -431,7 +439,13 @@ function App() {
                         <div className="flex items-center border border-gray-200">
                           <button onClick={() => updateCartQuantity(item._id, -1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">-</button>
                           <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
-                          <button onClick={() => updateCartQuantity(item._id, 1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">+</button>
+                          <button 
+  onClick={() => updateCartQuantity(item._id, 1)} 
+  disabled={item.quantity >= item.stock}
+  className={`px-2 py-1 transition ${item.quantity >= item.stock ? 'text-gray-200 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-red-700'}`}
+>
+  +
+</button>
                         </div>
                         <div className="font-bold text-red-700 min-w-[3.5rem] text-right">
                           ${(item.price * item.quantity).toFixed(2)}

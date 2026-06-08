@@ -326,6 +326,8 @@ function App() {
                     <h3 className="text-sm font-bold mb-1 text-gray-800 cursor-pointer hover:text-red-600 transition truncate" onClick={() => setSelectedProduct(product)}>
                       {product.name?.[i18n.language] || product.name?.en}
                     </h3>
+                    
+                    {/* --- THE FIXED BOTTOM SECTION --- */}
                     <div className="mt-auto pt-4 flex flex-col gap-3">
                       <div className="flex justify-between items-end px-1">
                         <span className="text-xl font-bold text-red-600 block">${product.price.toFixed(2)}</span>
@@ -341,11 +343,11 @@ function App() {
                         {product.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមទៅកន្ត្រក')}
                       </button>
                     </div>
-                    </div>
+                    {/* -------------------------------- */}
+                    
                   </div>
                 ))}
               </div>
-            </div>
           ) : (
             /* PRODUCT DETAILS VIEW */
             <div className="bg-white shadow-sm border border-gray-200 p-6 md:p-10 animate-fade-in">

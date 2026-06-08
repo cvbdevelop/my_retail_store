@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 // Add this near the top with your other imports
 const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
@@ -14,6 +15,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 // Add this further down with your other app.use statements
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 
 // --- 2. HEALTH CHECK (Proves the server is online) ---
 app.get('/', (req, res) => {

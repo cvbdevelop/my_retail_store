@@ -328,9 +328,13 @@ function App() {
                     </h3>
                     <div className="mt-auto pt-4 flex justify-between items-center">
                       <span className="text-xl font-bold text-red-600 block">${product.price.toFixed(2)}</span>
-                      <button onClick={() => addToCart(product)} className="bg-red-700 text-white px-4 py-2 text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm uppercase">
-                        {i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែម'}
-                      </button>
+                      <button 
+  onClick={() => addToCart(product)} 
+  disabled={product.stock <= 0}
+  className={`w-full py-2 font-bold text-sm uppercase tracking-widest transition ${product.stock <= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-900'}`}
+>
+  {product.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមទៅកន្ត្រក')}
+</button>
                     </div>
                   </div>
                 ))}
@@ -365,9 +369,10 @@ function App() {
                   
                   <button 
                     onClick={() => addToCart(selectedProduct)} 
-                    className="w-full md:w-auto bg-red-700 text-white px-8 py-4 text-sm font-bold uppercase tracking-wider hover:bg-gray-800 transition"
+                    disabled={selectedProduct.stock <= 0}
+                    className={`w-full md:w-auto px-8 py-4 text-sm font-bold uppercase tracking-wider transition ${selectedProduct.stock <= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-800'}`}
                   >
-                    {i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមចូលកន្ត្រក'}
+                    {selectedProduct.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមចូលកន្ត្រក')}
                   </button>
                 </div>
               </div>

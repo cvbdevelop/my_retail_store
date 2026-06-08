@@ -326,15 +326,21 @@ function App() {
                     <h3 className="text-sm font-bold mb-1 text-gray-800 cursor-pointer hover:text-red-600 transition truncate" onClick={() => setSelectedProduct(product)}>
                       {product.name?.[i18n.language] || product.name?.en}
                     </h3>
-                    <div className="mt-auto pt-4 flex justify-between items-center">
-                      <span className="text-xl font-bold text-red-600 block">${product.price.toFixed(2)}</span>
+                    <div className="mt-auto pt-4 flex flex-col gap-3">
+                      <div className="flex justify-between items-end px-1">
+                        <span className="text-xl font-bold text-red-600 block">${product.price.toFixed(2)}</span>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          {i18n.language === 'en' ? `Stock: ${product.stock}` : `ស្តុក: ${product.stock}`}
+                        </span>
+                      </div>
                       <button 
-  onClick={() => addToCart(product)} 
-  disabled={product.stock <= 0}
-  className={`w-full py-2 font-bold text-sm uppercase tracking-widest transition ${product.stock <= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-900'}`}
->
-  {product.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមទៅកន្ត្រក')}
-</button>
+                        onClick={() => addToCart(product)} 
+                        disabled={product.stock <= 0}
+                        className={`w-full py-3 font-bold text-sm uppercase tracking-widest transition rounded-sm ${product.stock <= 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-900'}`}
+                      >
+                        {product.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមទៅកន្ត្រក')}
+                      </button>
+                    </div>
                     </div>
                   </div>
                 ))}

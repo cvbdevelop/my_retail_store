@@ -161,10 +161,14 @@ function Admin() {
 
   // --- NEW: EXTRACT ALL CATEGORIES FROM DATABASE ---
   // We keep the base 3, and add any custom ones found in your products list
+  // --- NEW: EXTRACT ALL CATEGORIES FROM DATABASE ---
+  // We keep the base 5, and add any custom ones found in your products list
   const availableCategories = [...new Set([
     "Food & Drink", 
     "Clothes", 
     "Electronics", 
+    "Sports & Outdoors", 
+    "Toys",
     ...products.map(p => p.category)
   ])].filter(Boolean);
   

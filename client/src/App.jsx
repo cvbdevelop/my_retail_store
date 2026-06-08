@@ -348,6 +348,7 @@ function App() {
                   </div>
                 ))}
               </div>
+            </div>
           ) : (
             /* PRODUCT DETAILS VIEW */
             <div className="bg-white shadow-sm border border-gray-200 p-6 md:p-10 animate-fade-in">

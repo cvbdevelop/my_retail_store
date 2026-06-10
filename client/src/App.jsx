@@ -419,7 +419,7 @@ function App() {
       {/* --- CART SIDEBAR WIZARD (Unchanged, just matching colors) --- */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex justify-end transition-opacity">
-          <div className="bg-white w-full max-w-md h-full shadow-2xl p-8 flex flex-col animate-slide-in">
+          <div className="bg-white w-full max-w-md h-[100dvh] shadow-2xl p-4 md:p-8 flex flex-col animate-slide-in overflow-hidden">
             
             <div className="flex justify-between items-center mb-8 border-b pb-4">
               <div className="flex items-center gap-3">
@@ -604,7 +604,7 @@ function App() {
             </div>
             
             {/* BOTTOM ACTION BUTTONS */}
-            <div className="border-t pt-6 mt-4 bg-white">
+            <div className="border-t pt-4 mt-4 bg-white shrink-0 pb-2">
               {checkoutStep === 'cart' && (
                 <>
                   <div className="flex justify-between text-lg font-bold mb-6 text-gray-800">

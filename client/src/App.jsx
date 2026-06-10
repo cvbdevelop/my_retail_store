@@ -25,6 +25,7 @@ function App() {
   const [orderId, setOrderId] = useState(null);
   const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', address: '' });
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedVariantOption, setSelectedVariantOption] = useState("");
 
   const { t, i18n } = useTranslation();
   
@@ -54,27 +55,29 @@ function App() {
 
   const toggleLang = () => { i18n.changeLanguage(i18n.language === 'en' ? 'km' : 'en'); };
 
- const addToCart = (product) => {
-    // 1. Check if the item is already maxed out in the cart
-    const existingItem = cart.find(item => item._id === product._id);
+ const addToCart = (product, variantOption = null) => {
+    // Create a unique cart ID so different variants don't merge into one item
+    const cartId = variantOption ? `${product._id}-${variantOption}` : product._id;
+
+    // Check if the item is already maxed out
+    const existingItem = cart.find(item => item.cartId === cartId);
     if (existingItem && existingItem.quantity >= product.stock) {
       toast.error(i18n.language === 'en' ? `Only ${product.stock} in stock!` : `មានតែ ${product.stock} ក្នុងស្តុក!`);
-      return; // Stop the function completely!
+      return; 
     }
 
-    // 2. If it is safe, proceed with adding it
     setCart((prev) => {
-      const existing = prev.find(item => item._id === product._id);
-      if (existing) return prev.map(item => item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...prev, { ...product, quantity: 1 }];
+      const existing = prev.find(item => item.cartId === cartId);
+      if (existing) return prev.map(item => item.cartId === cartId ? { ...item, quantity: item.quantity + 1 } : item);
+      return [...prev, { ...product, cartId, selectedVariant: variantOption, quantity: 1 }];
     });
-    toast.success(i18n.language === 'en' ? `${product.name.en} added!` : `បានបន្ថែម!`);
+    toast.success(i18n.language === 'en' ? `${product.name?.en || 'Item'} added!` : `បានបន្ថែម!`);
   };
   
-  const updateCartQuantity = (productId, change) => {
+  const updateCartQuantity = (cartId, change) => {
     setCart((prev) => {
       return prev.map(item => {
-        if (item._id === productId) {
+        if (item.cartId === cartId) {
           return { ...item, quantity: item.quantity + change };
         }
         return item;
@@ -375,19 +378,34 @@ function App() {
                     {selectedProduct.name?.[i18n.language] || selectedProduct.name?.en}
                   </h2>
                   
-                  <div className="mb-6 bg-gray-50 p-4 border border-gray-100">
-                    <span className="text-4xl font-bold text-red-600 block">${selectedProduct.price.toFixed(2)}</span>
-                    <span className="text-sm text-gray-500 font-medium block mt-1">{(selectedProduct.price * 4100).toLocaleString()} ៛</span>
-                  </div>
+                  {/* --- NEW: VARIANT SELECTOR --- */}
+                  {selectedProduct.variants && selectedProduct.variants.length > 0 && selectedProduct.variants[0].options.length > 0 && (
+                    <div className="mb-6">
+                      <span className="text-sm font-bold text-gray-700 block mb-3 uppercase tracking-wider">
+                        {selectedProduct.variants[0].name}:
+                      </span>
+                      <div className="flex flex-wrap gap-3">
+                        {selectedProduct.variants[0].options.map(opt => (
+                          <button
+                            key={opt}
+                            onClick={() => setSelectedVariantOption(opt)}
+                            className={`px-5 py-2 border rounded-sm text-sm font-bold transition-all ${selectedVariantOption === opt ? 'border-red-700 bg-red-50 text-red-700 shadow-sm' : 'border-gray-300 text-gray-600 hover:border-gray-500'}`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   <p className="text-gray-600 text-sm leading-relaxed mb-8">
                     {selectedProduct.description?.[i18n.language] || selectedProduct.description?.en}
                   </p>
                   
                   <button 
-                    onClick={() => addToCart(selectedProduct)} 
-                    disabled={selectedProduct.stock <= 0}
-                    className={`w-full md:w-auto px-8 py-4 text-sm font-bold uppercase tracking-wider transition ${selectedProduct.stock <= 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-800'}`}
+                    onClick={() => addToCart(selectedProduct, selectedVariantOption)} 
+                    disabled={selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && !selectedVariantOption)}
+                    className={`w-full md:w-auto px-8 py-4 text-sm font-bold uppercase tracking-wider transition ${selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && !selectedVariantOption) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-800'}`}
                   >
                     {selectedProduct.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមចូលកន្ត្រក')}
                   </button>
@@ -431,16 +449,19 @@ function App() {
                     <div key={item._id} className="flex gap-3 items-center border-b border-gray-100 pb-4 mb-4 last:border-0">
                       <img src={item.image} className="w-16 h-16 object-cover border border-gray-200" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-gray-800 truncate">{item.name?.[i18n.language] || item.name?.en}</h4>
+                        <h4 className="font-bold text-sm text-gray-800 truncate">
+                          {item.name?.[i18n.language] || item.name?.en}
+                          {item.selectedVariant && <span className="ml-2 text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-xs">{item.selectedVariant}</span>}
+                        </h4>
                         <p className="text-xs text-gray-500 mt-1">${item.price.toFixed(2)} / {i18n.language === 'en' ? 'ea' : 'មួយ'}</p>
                       </div>
                       
                       <div className="flex items-center gap-3">
                         <div className="flex items-center border border-gray-200">
-                          <button onClick={() => updateCartQuantity(item._id, -1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">-</button>
+                          <button onClick={() => updateCartQuantity(item.cartID || item._id, -1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">-</button>
                           <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
                           <button 
-  onClick={() => updateCartQuantity(item._id, 1)} 
+  onClick={() => updateCartQuantity(item.cartID || item._id	, 1)} 
   disabled={item.quantity >= item.stock}
   className={`px-2 py-1 transition ${item.quantity >= item.stock ? 'text-gray-200 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-red-700'}`}
 >

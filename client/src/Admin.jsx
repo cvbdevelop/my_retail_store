@@ -18,7 +18,7 @@ function Admin() {
     nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: '' 
   });
   const [formData, setFormData] = useState({
-    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: ''
+    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: '', variantName: '', variantOptions: ''
   });
   const [imageFile, setImageFile] = useState(null); 
   const [isUploading, setIsUploading] = useState(false); 
@@ -79,7 +79,10 @@ function Admin() {
       price: product.price || '',
       descEn: product.description?.en || '',
       descKm: product.description?.km || '',
-      category: product.category || 'All'
+      category: product.category || 'All',
+      stock: product.stock || '',
+      variantName: product.variants?.[0]?.name || '', // <-- NEW
+      variantOptions: product.variants?.[0]?.options?.join(', ') || '' // <-- NEW (Converts array to comma-separated text)
     });
     setImageFile(null); 
     document.getElementById('file-upload').value = ""; 
@@ -121,7 +124,12 @@ function Admin() {
         description: { en: formData.descEn, km: formData.descKm },
         image: secureImageUrl, 
         category: formData.category || "All",
-        stock: Number(formData.stock)
+        stock: Number(formData.stock),
+        // --- NEW: VARIANT FORMATTING ---
+        variants: formData.variantName ? [{
+          name: formData.variantName,
+          options: formData.variantOptions.split(',').map(opt => opt.trim()).filter(Boolean)
+        }] : []
       };
 
       const config = {
@@ -224,6 +232,20 @@ function Admin() {
                 <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
                 <input type="number" step="any" placeholder="Price ($)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
                 <input type="number" placeholder="Stock Quantity (ចំនួនស្តុក)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
+				<input 
+                  type="text" 
+                  placeholder="Variant Type (e.g., Size or Color)" 
+                  className="p-3 border rounded-xl focus:ring-2 outline-none" 
+                  value={formData.variantName} 
+                  onChange={(e) => setFormData({ ...formData, variantName: e.target.value })} 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Options (comma separated: S, M, L)" 
+                  className="p-3 border rounded-xl focus:ring-2 outline-none" 
+                  value={formData.variantOptions} 
+                  onChange={(e) => setFormData({ ...formData, variantOptions: e.target.value })} 
+                />
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 

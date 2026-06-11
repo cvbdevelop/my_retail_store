@@ -453,14 +453,21 @@ function App() {
                     <div key={item._id} className="flex gap-3 items-center border-b border-gray-100 pb-4 mb-4 last:border-0">
                       <img src={item.image} className="w-16 h-16 object-cover border border-gray-200" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-gray-800 truncate">
-                          {item.name?.[i18n.language] || item.name?.en}
-                          {item.selectedVariants && Object.entries(item.selectedVariants).map(([key, val]) => (
-                            <span key={key} className="ml-2 inline-block text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-xs">
-                              {key}: {val}
-                            </span>
-                          ))}
-                        </h4>
+                        <div>
+                          <h4 className="font-bold text-sm text-gray-800 leading-tight">
+                            {item.name?.[i18n.language] || item.name?.en}
+                          </h4>
+                          {/* Variant Tags wrapped cleanly below the title */}
+                          {item.selectedVariants && (
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {Object.entries(item.selectedVariants).map(([key, val]) => (
+                                <span key={key} className="text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider shadow-sm">
+                                  {key}: {val}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">${item.price.toFixed(2)} / {i18n.language === 'en' ? 'ea' : 'មួយ'}</p>
                       </div>
                       

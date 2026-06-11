@@ -25,7 +25,7 @@ function App() {
   const [orderId, setOrderId] = useState(null);
   const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', address: '' });
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedVariantOption, setSelectedVariantOption] = useState("");
+  const [selectedVariants, setSelectedVariants] = useState({});
 
   const { t, i18n } = useTranslation();
   
@@ -55,11 +55,11 @@ function App() {
 
   const toggleLang = () => { i18n.changeLanguage(i18n.language === 'en' ? 'km' : 'en'); };
 
- const addToCart = (product, variantOption = null) => {
-    // Create a unique cart ID so different variants don't merge into one item
-    const cartId = variantOption ? `${product._id}-${variantOption}` : product._id;
+ const addToCart = (product, variants = {}) => {
+    // Generates an ID like: 12345-Color:Red-Size:M
+    const variantString = Object.entries(variants).map(([k, v]) => `${k}:${v}`).sort().join('-');
+    const cartId = variantString ? `${product._id}-${variantString}` : product._id;
 
-    // Check if the item is already maxed out
     const existingItem = cart.find(item => item.cartId === cartId);
     if (existingItem && existingItem.quantity >= product.stock) {
       toast.error(i18n.language === 'en' ? `Only ${product.stock} in stock!` : `មានតែ ${product.stock} ក្នុងស្តុក!`);
@@ -69,7 +69,7 @@ function App() {
     setCart((prev) => {
       const existing = prev.find(item => item.cartId === cartId);
       if (existing) return prev.map(item => item.cartId === cartId ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...prev, { ...product, cartId, selectedVariant: variantOption, quantity: 1 }];
+      return [...prev, { ...product, cartId, selectedVariants: variants, quantity: 1 }];
     });
     toast.success(i18n.language === 'en' ? `${product.name?.en || 'Item'} added!` : `បានបន្ថែម!`);
   };
@@ -331,10 +331,10 @@ function App() {
               <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <div key={product._id} className="bg-white p-4 border border-gray-200 transition-all hover:shadow-lg group flex flex-col">
-                    <div className="overflow-hidden mb-4 aspect-square bg-gray-50 relative cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                    <div className="overflow-hidden mb-4 aspect-square bg-gray-50 relative cursor-pointer" onClick={() => { setSelectedProduct(product); setSelectedVariants({}); }}>
                       <img src={product.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1544787210-282744e79c1b?q=80&w=400"; }} />
                     </div>
-                    <h3 className="text-sm font-bold mb-1 text-gray-800 cursor-pointer hover:text-red-600 transition truncate" onClick={() => setSelectedProduct(product)}>
+                    <h3 className="text-sm font-bold mb-1 text-gray-800 cursor-pointer hover:text-red-600 transition truncate" onClick={() => { setSelectedProduct(product); setSelectedVariants({}); }}>
                       {product.name?.[i18n.language] || product.name?.en}
                     </h3>
                     
@@ -378,23 +378,27 @@ function App() {
                     {selectedProduct.name?.[i18n.language] || selectedProduct.name?.en}
                   </h2>
                   
-                  {/* --- NEW: VARIANT SELECTOR --- */}
-                  {selectedProduct.variants && selectedProduct.variants.length > 0 && selectedProduct.variants[0].options.length > 0 && (
-                    <div className="mb-6">
-                      <span className="text-sm font-bold text-gray-700 block mb-3 uppercase tracking-wider">
-                        {selectedProduct.variants[0].name}:
-                      </span>
-                      <div className="flex flex-wrap gap-3">
-                        {selectedProduct.variants[0].options.map(opt => (
-                          <button
-                            key={opt}
-                            onClick={() => setSelectedVariantOption(opt)}
-                            className={`px-5 py-2 border rounded-sm text-sm font-bold transition-all ${selectedVariantOption === opt ? 'border-red-700 bg-red-50 text-red-700 shadow-sm' : 'border-gray-300 text-gray-600 hover:border-gray-500'}`}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
+                  {/* --- NEW: MULTI-VARIANT SELECTOR --- */}
+                  {selectedProduct.variants && selectedProduct.variants.length > 0 && (
+                    <div className="mb-6 space-y-4">
+                      {selectedProduct.variants.map((variant) => (
+                        <div key={variant.name}>
+                          <span className="text-sm font-bold text-gray-700 block mb-2 uppercase tracking-wider">
+                            {variant.name}:
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {variant.options.map(opt => (
+                              <button
+                                key={opt}
+                                onClick={() => setSelectedVariants({ ...selectedVariants, [variant.name]: opt })}
+                                className={`px-5 py-2 border rounded-sm text-sm font-bold transition-all ${selectedVariants[variant.name] === opt ? 'border-red-700 bg-red-50 text-red-700 shadow-sm' : 'border-gray-300 text-gray-600 hover:border-gray-500'}`}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                   
@@ -403,9 +407,9 @@ function App() {
                   </p>
                   
                   <button 
-                    onClick={() => addToCart(selectedProduct, selectedVariantOption)} 
-                    disabled={selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && !selectedVariantOption)}
-                    className={`w-full md:w-auto px-8 py-4 text-sm font-bold uppercase tracking-wider transition ${selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && !selectedVariantOption) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-800'}`}
+                    onClick={() => addToCart(selectedProduct, selectedVariants)} 
+                    disabled={selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && Object.keys(selectedVariants).length !== selectedProduct.variants.length)}
+                    className={`w-full md:w-auto px-8 py-4 text-sm font-bold uppercase tracking-wider transition ${selectedProduct.stock <= 0 || (selectedProduct.variants?.length > 0 && Object.keys(selectedVariants).length !== selectedProduct.variants.length) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-gray-800'}`}
                   >
                     {selectedProduct.stock <= 0 ? (i18n.language === 'en' ? 'Out of Stock' : 'អស់ពីស្តុក') : (i18n.language === 'en' ? 'Add to Cart' : 'បន្ថែមចូលកន្ត្រក')}
                   </button>
@@ -451,7 +455,11 @@ function App() {
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-sm text-gray-800 truncate">
                           {item.name?.[i18n.language] || item.name?.en}
-                          {item.selectedVariant && <span className="ml-2 text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-xs">{item.selectedVariant}</span>}
+                          {item.selectedVariants && Object.entries(item.selectedVariants).map(([key, val]) => (
+                            <span key={key} className="ml-2 inline-block text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded text-xs">
+                              {key}: {val}
+                            </span>
+                          ))}
                         </h4>
                         <p className="text-xs text-gray-500 mt-1">${item.price.toFixed(2)} / {i18n.language === 'en' ? 'ea' : 'មួយ'}</p>
                       </div>

@@ -18,7 +18,7 @@ function Admin() {
     nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: '' 
   });
   const [formData, setFormData] = useState({
-    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: '', variantName: '', variantOptions: ''
+    nameEn: '', nameKm: '', price: '', descEn: '', descKm: '', category: '', stock: '', variants: []
   });
   const [imageFile, setImageFile] = useState(null); 
   const [isUploading, setIsUploading] = useState(false); 
@@ -81,8 +81,7 @@ function Admin() {
       descKm: product.description?.km || '',
       category: product.category || 'All',
       stock: product.stock || '',
-      variantName: product.variants?.[0]?.name || '', // <-- NEW
-      variantOptions: product.variants?.[0]?.options?.join(', ') || '' // <-- NEW (Converts array to comma-separated text)
+      variants: product.variants?.length ? product.variants.map(v => ({ name: v.name, options: v.options.join(', ') })) : []
     });
     setImageFile(null); 
     document.getElementById('file-upload').value = ""; 
@@ -126,10 +125,13 @@ function Admin() {
         category: formData.category || "All",
         stock: Number(formData.stock),
         // --- NEW: VARIANT FORMATTING ---
-        variants: formData.variantName ? [{
-          name: formData.variantName,
-          options: formData.variantOptions.split(',').map(opt => opt.trim()).filter(Boolean)
-        }] : []
+        // --- NEW: MULTI-VARIANT FORMATTING ---
+        variants: formData.variants
+          .filter(v => v.name.trim() !== '' && v.options.trim() !== '') // Ignore empty rows
+          .map(v => ({
+            name: v.name.trim(),
+            options: v.options.split(',').map(opt => opt.trim()).filter(Boolean)
+          }))
       };
 
       const config = {
@@ -232,20 +234,22 @@ function Admin() {
                 <input type="text" placeholder="ឈ្មោះ (KH)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.nameKm} onChange={(e)=>setFormData({...formData, nameKm:e.target.value})} required />
                 <input type="number" step="any" placeholder="Price ($)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.price} onChange={(e)=>setFormData({...formData, price:e.target.value})} required />
                 <input type="number" placeholder="Stock Quantity (ចំនួនស្តុក)" className="p-3 border rounded-xl focus:ring-2 outline-none" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} required />
-				<input 
-                  type="text" 
-                  placeholder="Variant Type (e.g., Size or Color)" 
-                  className="p-3 border rounded-xl focus:ring-2 outline-none" 
-                  value={formData.variantName} 
-                  onChange={(e) => setFormData({ ...formData, variantName: e.target.value })} 
-                />
-                <input 
-                  type="text" 
-                  placeholder="Options (comma separated: S, M, L)" 
-                  className="p-3 border rounded-xl focus:ring-2 outline-none" 
-                  value={formData.variantOptions} 
-                  onChange={(e) => setFormData({ ...formData, variantOptions: e.target.value })} 
-                />
+				{/* --- DYNAMIC MULTI-VARIANTS SECTION --- */}
+                <div className="col-span-2 border border-gray-200 p-4 rounded-xl bg-gray-50 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold text-gray-700">Product Variants (e.g. Size, Color)</span>
+                    <button type="button" onClick={() => setFormData({...formData, variants: [...formData.variants, {name: '', options: ''}]})} className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 px-3 rounded-lg transition">
+                      + Add Variant
+                    </button>
+                  </div>
+                  {formData.variants.map((variant, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <input type="text" placeholder="Type (e.g. Size)" className="w-1/3 p-3 border rounded-xl focus:ring-2 outline-none bg-white" value={variant.name} onChange={(e) => { const newVars = [...formData.variants]; newVars[index].name = e.target.value; setFormData({...formData, variants: newVars}); }} />
+                      <input type="text" placeholder="Options (comma separated: S, M, L)" className="flex-1 p-3 border rounded-xl focus:ring-2 outline-none bg-white" value={variant.options} onChange={(e) => { const newVars = [...formData.variants]; newVars[index].options = e.target.value; setFormData({...formData, variants: newVars}); }} />
+                      <button type="button" onClick={() => { const newVars = formData.variants.filter((_, i) => i !== index); setFormData({...formData, variants: newVars}); }} className="text-red-500 font-bold px-2 hover:text-red-700">✕</button>
+                    </div>
+                  ))}
+                </div>
                 <textarea placeholder="Description (English)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descEn} onChange={(e)=>setFormData({...formData, descEn:e.target.value})} />
                 <textarea placeholder="ការពិពណ៌នា (ភាសាខ្មែរ)" className="p-3 border rounded-xl col-span-2 focus:ring-2 outline-none" rows="2" value={formData.descKm} onChange={(e)=>setFormData({...formData, descKm:e.target.value})} />
                 

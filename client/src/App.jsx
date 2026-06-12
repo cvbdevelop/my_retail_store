@@ -473,15 +473,16 @@ function App() {
                       
                       <div className="flex items-center gap-3">
                         <div className="flex items-center border border-gray-200">
-                          <button onClick={() => updateCartQuantity(item.cartID || item._id, -1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">-</button>
+                          {/* UPDATED: item.cartId || item._id */}
+                          <button onClick={() => updateCartQuantity(item.cartId || item._id, -1)} className="px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 transition">-</button>
                           <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
                           <button 
-  onClick={() => updateCartQuantity(item.cartID || item._id	, 1)} 
-  disabled={item.quantity >= item.stock}
-  className={`px-2 py-1 transition ${item.quantity >= item.stock ? 'text-gray-200 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-red-700'}`}
->
-  +
-</button>
+                            onClick={() => updateCartQuantity(item.cartId || item._id, 1)} 
+                            disabled={item.quantity >= item.stock}
+                            className={`px-2 py-1 transition ${item.quantity >= item.stock ? 'text-gray-200 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-red-700'}`}
+                          >
+                            +
+                          </button>
                         </div>
                         <div className="font-bold text-red-700 min-w-[3.5rem] text-right">
                           ${(item.price * item.quantity).toFixed(2)}

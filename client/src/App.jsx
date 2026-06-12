@@ -16,6 +16,7 @@ function App() {
   });
   const [myPastOrders, setMyPastOrders] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [gridRef] = useAutoAnimate(); 
@@ -251,35 +252,34 @@ function App() {
         </div>
 
         {/* Dark Navigation Bar */}
-        <div className="bg-gray-800 text-white shadow-md">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center">
+        <div className="bg-gray-800 text-white shadow-md sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center h-14 md:h-auto">
             
-            {/* Links */}
-            <div className="flex w-full md:w-auto text-sm font-bold uppercase overflow-x-auto">
-              <button className="bg-red-700 px-6 py-3.5 hover:bg-red-800 transition">
-                {i18n.language === 'en' ? 'Home' : 'ទំព័រដើម'}
-              </button>
-              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition">
-                {i18n.language === 'en' ? 'About' : 'អំពីយើង'}
-              </button>
-              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition hidden md:block">
-                {i18n.language === 'en' ? 'Delivery' : 'ការដឹកជញ្ជូន'}
-              </button>
-              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition hidden md:block">
-                {i18n.language === 'en' ? 'News' : 'ព័ត៌មាន'}
-              </button>
-              <button className="px-6 py-3.5 hover:bg-gray-700 transition hidden md:block">
-                {i18n.language === 'en' ? 'Contact' : 'ទំនាក់ទំនង'}
-              </button>
+            {/* Mobile Hamburger Button (Only shows on small screens) */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 text-white hover:text-red-400 focus:outline-none flex items-center gap-2"
+            >
+              <span className="text-2xl leading-none">☰</span>
+              <span className="text-xs font-bold uppercase tracking-widest">{i18n.language === 'en' ? 'Menu' : 'ម៉ឺនុយ'}</span>
+            </button>
+
+            {/* Links (Hidden on Mobile, visible on Desktop) */}
+            <div className="hidden lg:flex w-full md:w-auto text-sm font-bold uppercase overflow-x-auto">
+              <button className="bg-red-700 px-6 py-3.5 hover:bg-red-800 transition">{i18n.language === 'en' ? 'Home' : 'ទំព័រដើម'}</button>
+              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition">{i18n.language === 'en' ? 'About' : 'អំពីយើង'}</button>
+              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition">{i18n.language === 'en' ? 'Delivery' : 'ការដឹកជញ្ជូន'}</button>
+              <button className="px-6 py-3.5 hover:bg-gray-700 border-r border-gray-700 transition">{i18n.language === 'en' ? 'News' : 'ព័ត៌មាន'}</button>
+              <button className="px-6 py-3.5 hover:bg-gray-700 transition">{i18n.language === 'en' ? 'Contact' : 'ទំនាក់ទំនង'}</button>
             </div>
 
             {/* Embedded Search Box */}
-            <div className="py-2 w-full md:w-auto pr-0 md:pr-2">
-              <div className="relative">
+            <div className="py-2 flex-1 lg:flex-none flex justify-end">
+              <div className="relative w-full max-w-[200px] md:max-w-xs">
                 <input 
                   type="text" 
                   placeholder={i18n.language === 'en' ? "Search" : "ស្វែងរក"}
-                  className="w-full md:w-64 py-1.5 px-3 pr-8 bg-white rounded text-gray-800 text-sm focus:outline-none shadow-inner"
+                  className="w-full py-1.5 px-3 pr-8 bg-white rounded text-gray-800 text-sm focus:outline-none shadow-inner"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -289,14 +289,13 @@ function App() {
 
           </div>
         </div>
-      </div>
       {/* --------------------------- */}
 
       {/* --- BODY LAYOUT: SIDEBAR + MAIN CONTENT --- */}
       <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-8">
         
         {/* LEFT SIDEBAR */}
-        <aside className="w-full lg:w-64 shrink-0">
+        <aside className="hidden lg:block w-64 shrink-0">
           <div className="bg-red-700 text-white font-bold px-4 py-3 text-lg uppercase tracking-wide">
             {i18n.language === 'en' ? 'Categories' : 'ប្រភេទ'}
           </div>
@@ -651,6 +650,52 @@ function App() {
               )}
             </div>
 
+          </div>
+        </div>
+      )}
+	  {/* --- MOBILE HAMBURGER MENU DRAWER --- */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex lg:hidden transition-opacity">
+          {/* Menu Box sliding in from the left */}
+          <div className="bg-white w-4/5 max-w-sm h-[100dvh] shadow-2xl flex flex-col overflow-hidden animate-slide-in">
+            
+            {/* Header */}
+            <div className="bg-gray-900 text-white p-5 flex justify-between items-center shrink-0 border-b-4 border-red-700">
+              <span className="font-serif text-xl tracking-tight"><span className="text-red-600">M</span>Y RETAIL STORE</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400 hover:text-white text-2xl font-bold bg-gray-800 w-8 h-8 flex items-center justify-center rounded-full">✕</button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 py-6 bg-gray-50">
+              
+              {/* Site Links */}
+              <div className="px-6 pb-6 border-b border-gray-200 space-y-4">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="block w-full text-left font-bold text-gray-800 uppercase text-sm hover:text-red-700">{i18n.language === 'en' ? 'Home' : 'ទំព័រដើម'}</button>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="block w-full text-left font-bold text-gray-800 uppercase text-sm hover:text-red-700">{i18n.language === 'en' ? 'About' : 'អំពីយើង'}</button>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="block w-full text-left font-bold text-gray-800 uppercase text-sm hover:text-red-700">{i18n.language === 'en' ? 'Delivery' : 'ការដឹកជញ្ជូន'}</button>
+              </div>
+
+              {/* Dynamic Categories */}
+              <div className="px-6 pt-6">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 block">
+                  {i18n.language === 'en' ? 'Browse Categories' : 'ប្រភេទផលិតផល'}
+                </span>
+                <ul className="space-y-4 text-sm bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                  {categories.map(cat => (
+                    <li key={cat.value} className="border-b border-gray-50 last:border-0 pb-2 last:pb-0">
+                      <button
+                        onClick={() => { setActiveCategory(cat.value); setSelectedProduct(null); setIsMobileMenuOpen(false); }}
+                        className={`w-full text-left flex items-center gap-3 transition-colors uppercase text-xs tracking-wider font-bold ${activeCategory === cat.value ? 'text-red-700' : 'text-gray-600 hover:text-red-700'}`}
+                      >
+                        {activeCategory === cat.value ? <span className="text-red-700 text-[10px]">▶</span> : <span className="text-gray-300 text-[10px]">▶</span>}
+                        {i18n.language === 'en' ? cat.en : cat.km}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            
           </div>
         </div>
       )}
